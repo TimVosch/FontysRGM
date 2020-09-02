@@ -1,6 +1,7 @@
 import { MessageHandler } from "../../common/message.handler";
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerStartSequence } from "../../common/messages/startSequence.server";
+import { PeerMessage } from "../../common/messages/message.peer";
 
 export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
   abstract readonly id: number;
@@ -21,6 +22,36 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
   onStartSequence() {
     console.log(`[MachineBase] Triggered`);
     this.onStart();
+  }
+
+  /**
+   * Treat peer messages as regular messages
+   * @param message
+   */
+  @listen(PeerMessage)
+  onPeerMessage(message: PeerMessage) {
+    this.onMessage(message.event, message.data);
+  }
+
+  /**
+   * Send a message to another machine
+   * @param id The machine ID
+   * @param message the message
+   */
+  sendToPeer(id: number, message: any) {
+    const event = Reflect.getMetadata("event", message);
+    if (!event) {
+      console.error(
+        "[MachineBase] Cannot send message to server. Did you forget @registerMessage?"
+      );
+      return;
+    }
+
+    const peerMessage = new PeerMessage();
+    peerMessage.target = id;
+    peerMessage.event = event;
+    peerMessage.data = message;
+    this.send(peerMessage);
   }
 
   /**

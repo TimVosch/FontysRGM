@@ -66,7 +66,7 @@ export class SocketHandler {
     }
 
     // Create the client handler
-    const clientHandler = new ClientHandler(client, message.id);
+    const clientHandler = new ClientHandler(client, this, message.id);
     this.clients[message.id] = clientHandler;
 
     // Free RGM ID when disconnected
@@ -81,5 +81,13 @@ export class SocketHandler {
     client.emit(elbowAccepted.constructor.name, elbowAccepted);
 
     console.log(`[SocketHandler] Accepted client with RGM ID ${message.id}`);
+  }
+
+  /**
+   * Get a client by its RGM ID
+   * @param id The RGM ID
+   */
+  getClient(id: number): ClientHandler {
+    return this.clients[id];
   }
 }

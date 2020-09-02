@@ -1,14 +1,23 @@
 import { MessageHandler } from "../common/message.handler";
 import { firebase } from "./firebase";
 import { ServerStartSequence } from "../common/messages/startSequence.server";
+import { listen } from "../common/decorators/listen.decorator";
+import { PeerMessage } from "../common/messages/message.peer";
+import { SocketHandler } from "./socket.handler";
 
 export class ClientHandler extends MessageHandler<SocketIO.Socket> {
   private readonly id: number;
+  private readonly socketHandler: SocketHandler;
   private firebaseCallbackValue: any;
 
-  constructor(client: SocketIO.Socket, id: number) {
+  constructor(
+    client: SocketIO.Socket,
+    socketHandler: SocketHandler,
+    id: number
+  ) {
     super(client);
     this.socket = client;
+    this.socketHandler = socketHandler;
     this.id = id;
 
     this.firebaseCallbackValue = firebase().onChange(
@@ -27,6 +36,12 @@ export class ClientHandler extends MessageHandler<SocketIO.Socket> {
       this.onMessage(event, data);
       next();
     });
+  }
+
+  @listen(PeerMessage)
+  onClientPeerMessage(message: PeerMessage): void {
+    const target = this.socketHandler.getClient(message.target);
+    target.send(message);
   }
 
   /**
