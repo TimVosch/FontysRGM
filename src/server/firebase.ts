@@ -23,6 +23,14 @@ export class FirebaseClass {
   }
 
   /**
+   * Set the data
+   * @param node The data
+   */
+  set(node: any) {
+    this.database.ref("/chain/").set({ node });
+  }
+
+  /**
    *
    */
   stop(firebaseValue: any) {

@@ -10,7 +10,17 @@ export class SocketHandler {
   private readonly clients: Record<number, ClientHandler> = {};
 
   constructor(http: Server) {
-    this.server = SocketIO(http);
+    this.server = SocketIO(http, {
+      handlePreflightRequest: (req: any, res: any) => {
+        const headers = {
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          "Access-Control-Allow-Origin": req.headers.origin, //or the specific origin you want to give access to,
+          "Access-Control-Allow-Credentials": true,
+        };
+        res.writeHead(200, headers);
+        res.end();
+      },
+    });
 
     MessageParser.register(ClientElbowshake);
     this.server.on("connection", this.onConnection.bind(this));

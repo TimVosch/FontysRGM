@@ -4,6 +4,7 @@ import { ServerStartSequence } from "../common/messages/startSequence.server";
 import { listen } from "../common/decorators/listen.decorator";
 import { PeerMessage } from "../common/messages/message.peer";
 import { SocketHandler } from "./socket.handler";
+import { ClientFinished } from "../common/messages/finished.client";
 
 export class ClientHandler extends MessageHandler<SocketIO.Socket> {
   private readonly id: number;
@@ -42,6 +43,14 @@ export class ClientHandler extends MessageHandler<SocketIO.Socket> {
   onClientPeerMessage(message: PeerMessage): void {
     const target = this.socketHandler.getClient(message.target);
     target.send(message);
+  }
+
+  @listen(ClientFinished)
+  onClientFinish(message: ClientFinished) {
+    console.log(
+      `[ClientHandler] Client has finished, triggering ${message.nextID}`
+    );
+    firebase().set({ nextScreen: message.nextID });
   }
 
   /**
