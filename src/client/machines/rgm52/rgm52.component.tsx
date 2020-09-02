@@ -1,19 +1,36 @@
 import React from "react";
-import SocketIO from "socket.io-client";
-import { ServerHandler } from "../server.handler";
 import "./rgm52.component.css";
 import { Machine } from "../machine.base";
-import RGM52 from "./52";
+import { PeerMakeAlert } from "../../../common/messages/makeAlert.peer";
+import { PeerCloseAlert } from "../../../common/messages/closeAlert.peer";
+import { PeerOpenTerminal } from "../../../common/messages/openTerminal.peer";
+import { listen } from "../../../common/decorators/listen.decorator";
 
-export class RGM52Page extends React.Component {
-  socket: SocketIOClient.Socket;
-  handler: ServerHandler;
-  machine: Machine;
+export class RGM52Page extends Machine {
+  readonly id = 52;
 
-  componentDidMount() {
-    this.socket = SocketIO();
-    this.handler = new ServerHandler(this.socket, 52);
-    this.machine = new RGM52(this.socket);
+  messageBox: HTMLElement = document.getElementById("message");
+  popup: HTMLElement = document.getElementById("popup");
+  console: HTMLElement = document.getElementById("console");
+
+  onStart(): void {
+    this.finish();
+  }
+
+  @listen(PeerMakeAlert)
+  onAlert({ message }: PeerMakeAlert) {
+    this.messageBox.classList.add("active");
+    this.messageBox.innerHTML = message;
+  }
+
+  @listen(PeerCloseAlert)
+  onCloseAlert() {
+    this.messageBox.classList.remove("active");
+  }
+
+  @listen(PeerOpenTerminal)
+  openTerminal() {
+    this.popup.classList.add("active");
   }
 
   render() {

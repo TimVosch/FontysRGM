@@ -1,21 +1,31 @@
 import React from "react";
-import SocketIO from "socket.io-client";
-import { ServerHandler } from "../server.handler";
 import { Machine } from "../machine.base";
-import RGM51 from "./51";
+import { PeerOpenTerminal } from "../../../common/messages/openTerminal.peer";
+import { PeerMakeAlert } from "../../../common/messages/makeAlert.peer";
 
-export class RGM51Page extends React.Component {
+export class RGM51Page extends Machine {
   socket: SocketIOClient.Socket;
-  handler: ServerHandler;
-  machine: Machine;
 
-  componentDidMount() {
-    this.socket = SocketIO();
-    this.handler = new ServerHandler(this.socket, 51);
-    this.machine = new RGM51(this.socket);
+  readonly id = 51;
+
+  onStart(): void {
+    setTimeout(() => {
+      const msg = new PeerOpenTerminal();
+      this.sendToPeer(52, msg);
+    }, 1000);
+
+    setTimeout(() => {
+      const msg = new PeerMakeAlert();
+      msg.message = "Security Breach Detected!";
+      this.sendToPeer(52, msg);
+    }, 2000);
+
+    setTimeout(() => {
+      this.finish();
+    }, 4000);
   }
 
   render() {
-    return <h1>Machine 52</h1>;
+    return <h1>Machine 51</h1>;
   }
 }

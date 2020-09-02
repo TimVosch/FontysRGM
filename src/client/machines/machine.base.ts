@@ -1,18 +1,47 @@
-import { MessageHandler } from "../../common/message.handler";
+import React from "react";
+
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerStartSequence } from "../../common/messages/startSequence.server";
 import { PeerMessage } from "../../common/messages/message.peer";
 import { ClientFinished } from "../../common/messages/finished.client";
+import { MessageHandler } from "../message.handler";
+import { ServerElbowshake } from "../../common/messages/elbowshake.server";
+import { ClientElbowshake } from "../../common/messages/elbowshake.client";
 
-export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
+interface MachineProps {
+  socket: SocketIOClient.Socket;
+}
+
+export abstract class Machine<
+  P extends MachineProps = MachineProps,
+  S = {},
+  SS = {}
+> extends React.Component<MachineProps, S, SS> {
   abstract readonly id: number;
+  protected handler: MessageHandler;
 
-  bindOnMessage(): void {
-    // Bind all listeners to onMessage
-    Object.keys(this.listeners).forEach((event) => {
-      console.log(`Bound for ${event}`);
-      this.socket.on(event, this.onMessage.bind(this, event));
-    });
+  constructor(props: Readonly<P>) {
+    super(props);
+    this.handler = new MessageHandler(this, props.socket);
+  }
+
+  componentDidMount() {
+    console.log("Sending elbowshake");
+
+    // Create elbowshake
+    const elbowshake = new ClientElbowshake();
+    elbowshake.id = this.id;
+
+    this.handler.send(elbowshake);
+  }
+
+  @listen(ServerElbowshake)
+  onElbowshake(message: ServerElbowshake) {
+    if (message.error) {
+      console.log("Elbowshake rejected by server: " + message.message);
+      return;
+    }
+    console.log("Elbowshake accepted by server");
   }
 
   /**
@@ -31,7 +60,7 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
    */
   @listen(PeerMessage)
   onPeerMessage(message: PeerMessage) {
-    this.onMessage(message.event, message.data);
+    this.handler.onMessage(message.event, message.data);
   }
 
   /**
@@ -52,7 +81,7 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
     peerMessage.target = id;
     peerMessage.event = event;
     peerMessage.data = message;
-    this.send(peerMessage);
+    this.handler.send(peerMessage);
   }
 
   /**
@@ -64,7 +93,7 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
 
     const msg = new ClientFinished();
     msg.nextID = next;
-    this.send(msg);
+    this.handler.send(msg);
   }
 
   /**

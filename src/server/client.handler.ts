@@ -1,14 +1,15 @@
-import { MessageHandler } from "../common/message.handler";
 import { firebase } from "./firebase";
 import { ServerStartSequence } from "../common/messages/startSequence.server";
 import { listen } from "../common/decorators/listen.decorator";
 import { PeerMessage } from "../common/messages/message.peer";
 import { SocketHandler } from "./socket.handler";
 import { ClientFinished } from "../common/messages/finished.client";
+import { MessageHandler } from "./message.handler";
 
-export class ClientHandler extends MessageHandler<SocketIO.Socket> {
+export class ClientHandler {
   private readonly id: number;
   private readonly socketHandler: SocketHandler;
+  private readonly handler: MessageHandler;
   private firebaseCallbackValue: any;
 
   constructor(
@@ -16,10 +17,9 @@ export class ClientHandler extends MessageHandler<SocketIO.Socket> {
     socketHandler: SocketHandler,
     id: number
   ) {
-    super(client);
-    this.socket = client;
     this.socketHandler = socketHandler;
     this.id = id;
+    this.handler = new MessageHandler(this, client);
 
     this.firebaseCallbackValue = firebase().onChange(
       this.onFirebaseUpdate.bind(this)
@@ -32,17 +32,12 @@ export class ClientHandler extends MessageHandler<SocketIO.Socket> {
     }
   }
 
-  bindOnMessage(): void {
-    this.socket.use(([event, data, _], next) => {
-      this.onMessage(event, data);
-      next();
-    });
-  }
-
   @listen(PeerMessage)
   onClientPeerMessage(message: PeerMessage): void {
     const target = this.socketHandler.getClient(message.target);
-    target.send(message);
+    if (target !== null) {
+      target.handler.send(message);
+    }
   }
 
   @listen(ClientFinished)
@@ -59,7 +54,7 @@ export class ClientHandler extends MessageHandler<SocketIO.Socket> {
   startClientSequence(data: any) {
     console.log(`[ClientHandler] Triggering client for ${this.id}`);
     const msg = new ServerStartSequence();
-    this.send(msg);
+    this.handler.send(msg);
   }
 
   onDisconnect() {

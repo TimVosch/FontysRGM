@@ -98,6 +98,6 @@ export class SocketHandler {
    * @param id The RGM ID
    */
   getClient(id: number): ClientHandler {
-    return this.clients[id];
+    return this.clients[id] || null;
   }
 }

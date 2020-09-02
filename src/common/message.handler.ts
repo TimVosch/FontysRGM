@@ -1,18 +1,18 @@
 import { MessageParser } from "./message.parser";
 import { extractListeners, extractMessages } from "./util";
 import { classToPlain } from "class-transformer";
-import { debug } from "webpack";
 
 interface Emittable {
   emit(event: string, ...args: any[]): void;
 }
 
-export abstract class MessageHandler<Socket extends Emittable> {
+export abstract class MessageHandlerBase<Socket extends Emittable> {
+  protected listeners: Record<string, Function[]>;
+  protected target: any;
   protected socket: Socket;
 
-  protected listeners: Record<string, Function[]>;
-
-  constructor(socket: Socket) {
+  constructor(target: any, socket: Socket) {
+    this.target = target;
     this.socket = socket;
     this.initializeClass();
     this.bindOnMessage();
@@ -22,10 +22,10 @@ export abstract class MessageHandler<Socket extends Emittable> {
    *
    */
   private initializeClass() {
-    const messages = extractMessages(this);
+    const messages = extractMessages(this.target);
     messages.forEach((message) => MessageParser.register(message));
 
-    const listeners = extractListeners(this);
+    const listeners = extractListeners(this.target);
     this.listeners = listeners;
   }
 
