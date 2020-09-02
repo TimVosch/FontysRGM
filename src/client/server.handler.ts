@@ -4,11 +4,13 @@ import { listen } from "../common/decorators/listen.decorator";
 import { ServerElbowshake } from "../common/messages/elbowshake.server";
 
 export class ServerHandler extends MessageHandler {
-  protected socket: SocketIOClient.Socket;
+  private readonly rgmID: number;
+  protected readonly socket: SocketIOClient.Socket;
 
-  constructor(socket: SocketIOClient.Socket) {
+  constructor(socket: SocketIOClient.Socket, id: number) {
     super();
     this.socket = socket;
+    this.rgmID = id;
 
     // Bind all listeners to onMessage
     Object.keys(this.listeners).forEach((event) => {
@@ -37,7 +39,7 @@ export class ServerHandler extends MessageHandler {
 
     // Create elbowshake
     const elbowshake = new ClientElbowshake();
-    elbowshake.id = 51;
+    elbowshake.id = this.rgmID;
 
     this.send(elbowshake);
   }
