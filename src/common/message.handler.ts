@@ -12,6 +12,9 @@ export class MessageHandler {
   protected listeners: Record<string, Function[]>;
 
   constructor(socket?: Emittable) {
+    if (socket) {
+      this.socket = socket;
+    }
     this.initializeClass();
   }
 

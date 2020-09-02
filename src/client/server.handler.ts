@@ -8,8 +8,7 @@ export class ServerHandler extends MessageHandler {
   protected readonly socket: SocketIOClient.Socket;
 
   constructor(socket: SocketIOClient.Socket, id: number) {
-    super();
-    this.socket = socket;
+    super(socket);
     this.rgmID = id;
 
     // Bind all listeners to onMessage
