@@ -1,12 +1,13 @@
 import { MessageParser } from "./message.parser";
 import { extractListeners, extractMessages } from "./util";
 import { classToPlain } from "class-transformer";
+import { debug } from "webpack";
 
 interface Emittable {
   emit(event: string, ...args: any[]): void;
 }
 
-export class MessageHandler<Socket extends Emittable> {
+export abstract class MessageHandler<Socket extends Emittable> {
   protected socket: Socket;
 
   protected listeners: Record<string, Function[]>;
@@ -14,6 +15,7 @@ export class MessageHandler<Socket extends Emittable> {
   constructor(socket: Socket) {
     this.socket = socket;
     this.initializeClass();
+    this.bindOnMessage();
   }
 
   /**
@@ -50,8 +52,8 @@ export class MessageHandler<Socket extends Emittable> {
    * @param target
    * @param message
    */
-  async send(message: any, target?: Socket) {
-    const socket = target || this.socket;
+  async send(message: any) {
+    const socket = this.socket;
 
     // Make sure that either a client is provided or that we have a default client set
     if (!socket) {
@@ -74,4 +76,6 @@ export class MessageHandler<Socket extends Emittable> {
 
     socket.emit(eventName, classToPlain(message));
   }
+
+  abstract bindOnMessage(): void;
 }

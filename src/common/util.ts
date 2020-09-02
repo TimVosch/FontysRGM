@@ -1,9 +1,22 @@
 import { LISTEN_METADATA_KEY } from "./decorators/listen.decorator";
 
+const getMethods = (obj: any) => {
+  let properties = new Set<string>();
+  let currentObj = obj;
+
+  do {
+    Object.getOwnPropertyNames(currentObj).map((item) => properties.add(item));
+  } while ((currentObj = Object.getPrototypeOf(currentObj)));
+
+  return [...properties.keys()].filter(
+    (item: string) => typeof obj[item] === "function"
+  );
+};
+
 export const extractListeners = (klass: object) => {
   const messageListeners: Record<string, Function[]> = {};
-  const prototype = Reflect.getPrototypeOf(klass);
-  const keys = Reflect.ownKeys(prototype);
+  const prototype = klass;
+  const keys = getMethods(klass);
 
   // Iterate all properties and methods
   keys.forEach((key) => {

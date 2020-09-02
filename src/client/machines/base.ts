@@ -5,10 +5,12 @@ import { ServerStartSequence } from "../../common/messages/startSequence.server"
 export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
   constructor(socket: SocketIOClient.Socket) {
     super(socket);
+  }
 
+  bindOnMessage(): void {
     // Bind all listeners to onMessage
     Object.keys(this.listeners).forEach((event) => {
-      socket.on(event, this.onMessage.bind(this, event));
+      this.socket.on(event, this.onMessage.bind(this, event));
     });
   }
 
@@ -17,7 +19,8 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
    * which subclass must implement
    */
   @listen(ServerStartSequence)
-  private onStartSequence() {
+  onStartSequence() {
+    console.log(`[MachineBase] Triggered`);
     this.onStart();
   }
 

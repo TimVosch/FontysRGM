@@ -71,6 +71,7 @@ export class SocketHandler {
 
     // Free RGM ID when disconnected
     client.once("disconnect", () => {
+      clientHandler.onDisconnect();
       delete this.clients[message.id];
       console.log(`[SocketHandler] Freed RGM ID ${message.id}`);
     });
