@@ -2,6 +2,7 @@ import { MessageHandler } from "../../common/message.handler";
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerStartSequence } from "../../common/messages/startSequence.server";
 import { PeerMessage } from "../../common/messages/message.peer";
+import { ClientFinished } from "../../common/messages/finished.client";
 
 export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
   abstract readonly id: number;
@@ -60,6 +61,10 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
   protected finish(id?: number) {
     const next = id || this.id + 1;
     console.log(`[MachineBase] Finished, triggering ${next}`);
+
+    const msg = new ClientFinished();
+    msg.nextID = next;
+    this.send(msg);
   }
 
   /**
