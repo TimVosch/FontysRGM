@@ -22,7 +22,7 @@ export class FirebaseClass extends EventEmitter {
       .ref("/chain/")
       .on("value", (value) => {
         const node = value.val().node;
-        this.emit("trigger", { id: node.nextScreen });
+        this.emit("trigger", node);
       });
   }
 
