@@ -3,6 +3,8 @@ import { listen } from "../../common/decorators/listen.decorator";
 import { ServerStartSequence } from "../../common/messages/startSequence.server";
 
 export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
+  abstract readonly id: number;
+
   bindOnMessage(): void {
     // Bind all listeners to onMessage
     Object.keys(this.listeners).forEach((event) => {
@@ -25,17 +27,12 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
    * Finished the animation and triggers the given or next RGMID
    */
   protected finish(id?: number) {
-    const next = id || this.getID() + 1;
-    console.log(`Finished, triggering ${next}`);
+    const next = id || this.id + 1;
+    console.log(`[MachineBase] Finished, triggering ${next}`);
   }
 
   /**
    * Triggered when the animation should start
    */
   abstract onStart(): void;
-
-  /**
-   * Returns the machineID
-   */
-  abstract getID(): number;
 }
