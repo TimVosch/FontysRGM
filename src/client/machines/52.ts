@@ -1,6 +1,6 @@
 import { Machine } from "./base";
 
-export class RGM52 extends Machine {
+export default class RGM52 extends Machine {
   onStart(): void {
     throw new Error("Method not implemented.");
   }

@@ -11,10 +11,10 @@ type Klass<T> = new (...args: any[]) => T;
  */
 const loadMachine = async (id: number): Promise<Klass<Machine>> => {
   if (rgmID === 51) {
-    return (await import("./machines/51")).RGM51;
+    return (await import("./machines/51")).default;
   }
   if (rgmID === 52) {
-    return (await import("./machines/52")).RGM52;
+    return (await import("./machines/52")).default;
   }
   return null;
 };
