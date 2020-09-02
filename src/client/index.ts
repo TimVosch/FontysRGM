@@ -24,7 +24,7 @@ const loadMachine = async (id: number): Promise<Klass<Machine>> => {
  * Entry
  */
 const bootstrap = async () => {
-  const socket = SocketIO.connect("https://d701d7908a69.ngrok.io");
+  const socket = SocketIO();
   const handler = new ServerHandler(socket, rgmID);
 
   const MachineCTOR = await loadMachine(rgmID);
