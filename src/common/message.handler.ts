@@ -6,15 +6,13 @@ interface Emittable {
   emit(event: string, ...args: any[]): void;
 }
 
-export class MessageHandler {
-  protected socket?: Emittable;
+export class MessageHandler<Socket extends Emittable> {
+  protected socket: Socket;
 
   protected listeners: Record<string, Function[]>;
 
-  constructor(socket?: Emittable) {
-    if (socket) {
-      this.socket = socket;
-    }
+  constructor(socket: Socket) {
+    this.socket = socket;
     this.initializeClass();
   }
 
@@ -52,7 +50,7 @@ export class MessageHandler {
    * @param target
    * @param message
    */
-  async send(message: any, target?: Emittable) {
+  async send(message: any, target?: Socket) {
     const socket = target || this.socket;
 
     // Make sure that either a client is provided or that we have a default client set

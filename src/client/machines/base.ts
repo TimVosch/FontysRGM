@@ -2,9 +2,7 @@ import { MessageHandler } from "../../common/message.handler";
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerStartSequence } from "../../common/messages/startSequence.server";
 
-export abstract class Machine extends MessageHandler {
-  protected readonly socket: SocketIOClient.Socket;
-
+export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
   constructor(socket: SocketIOClient.Socket) {
     super(socket);
 

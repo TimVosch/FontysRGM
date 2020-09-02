@@ -3,17 +3,16 @@ import { Server } from "http";
 import { ClientElbowshake } from "../common/messages/elbowshake.client";
 import { ClientHandler } from "./client.handler";
 import { ServerElbowshake } from "../common/messages/elbowshake.server";
-import { MessageHandler } from "../common/message.handler";
-import { listen } from "../common/decorators/listen.decorator";
+import { MessageParser } from "../common/message.parser";
 
-export class SocketHandler extends MessageHandler {
+export class SocketHandler {
   private readonly server: SocketIO.Server;
   private readonly clients: Record<number, ClientHandler> = {};
 
   constructor(http: Server) {
-    super();
     this.server = SocketIO(http);
 
+    MessageParser.register(ClientElbowshake);
     this.server.on("connection", this.onConnection.bind(this));
   }
 
@@ -25,10 +24,10 @@ export class SocketHandler extends MessageHandler {
     console.log("[SocketHandler] New connection");
 
     // Listen to client messages
-    client.use(([event, data, _], next) => {
-      this.onMessage(event, data, client);
-      next();
-    });
+    client.once(
+      ClientElbowshake.name,
+      this.onClientElbowshake.bind(this, client)
+    );
   }
 
   /**
@@ -36,8 +35,18 @@ export class SocketHandler extends MessageHandler {
    * @param message
    * @param client
    */
-  @listen(ClientElbowshake)
-  onClientElbowshake(message: ClientElbowshake, client: SocketIO.Socket) {
+  async onClientElbowshake(client: SocketIO.Socket, data: any) {
+    const message: ClientElbowshake = await MessageParser.parse(
+      ClientElbowshake.name,
+      data
+    );
+
+    // Invalid message
+    if (message === null) {
+      client.disconnect();
+      return;
+    }
+
     // Reject client if this RGM ID is already in use
     if (!!this.clients[message.id]) {
       const elbowDenied = new ServerElbowshake();
@@ -45,7 +54,7 @@ export class SocketHandler extends MessageHandler {
       elbowDenied.message = "Client with that RGM ID already exists";
 
       // Send rejection
-      this.send(elbowDenied, client);
+      client.emit(elbowDenied.constructor.name, elbowDenied);
 
       client.disconnect();
 
@@ -68,7 +77,7 @@ export class SocketHandler extends MessageHandler {
 
     // Let the client know it has been accepted
     const elbowAccepted = new ServerElbowshake();
-    this.send(elbowAccepted, client);
+    client.emit(elbowAccepted.constructor.name, elbowAccepted);
 
     console.log(`[SocketHandler] Accepted client with RGM ID ${message.id}`);
   }
