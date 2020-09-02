@@ -23,7 +23,7 @@ const http = createServer(app);
 const socketHandler = new SocketHandler(http);
 
 // Configure firebase singleton
-firebase(firebaseConfig).start();
+firebase(firebaseConfig);
 
 app.use(express.static("dist"));
 

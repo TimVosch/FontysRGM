@@ -10,14 +10,16 @@ export class ServerHandler extends MessageHandler<SocketIOClient.Socket> {
     super(socket);
     this.rgmID = id;
 
-    // Bind all listeners to onMessage
-    Object.keys(this.listeners).forEach((event) => {
-      socket.on(event, this.onMessage.bind(this, event));
-    });
-
     // Register two listeners that do not cohere to MessageHandler standards
     socket.on("disconnect", this.onDisconnect.bind(this));
     socket.on("connect", this.onConnect.bind(this));
+  }
+
+  bindOnMessage(): void {
+    // Bind all listeners to onMessage
+    Object.keys(this.listeners).forEach((event) => {
+      this.socket.on(event, this.onMessage.bind(this, event));
+    });
   }
 
   @listen(ServerElbowshake)
