@@ -1,11 +1,6 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "moduleResolution": "node",
-    "module": "ESNext",
-    "sourceMap": true,
-    "strict": false,
-    "target": "es2019"
+    "jsx": "react"
   }
 }

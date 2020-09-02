@@ -1,8 +1,8 @@
-import { Machine } from "./base";
-import { listen } from "../../common/decorators/listen.decorator";
-import { PeerMakeAlert } from "../../common/messages/makeAlert.peer";
-import { PeerCloseAlert } from "../../common/messages/closeAlert.peer";
-import { PeerOpenTerminal } from "../../common/messages/openTerminal.peer";
+import { Machine } from "../machine.base";
+import { listen } from "../../../common/decorators/listen.decorator";
+import { PeerMakeAlert } from "../../../common/messages/makeAlert.peer";
+import { PeerCloseAlert } from "../../../common/messages/closeAlert.peer";
+import { PeerOpenTerminal } from "../../../common/messages/openTerminal.peer";
 
 export default class RGM52 extends Machine {
   readonly id = 52;

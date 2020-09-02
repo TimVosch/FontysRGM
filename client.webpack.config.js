@@ -4,7 +4,7 @@ const { SourceMapDevToolPlugin } = require("webpack");
 
 module.exports = {
   mode: "development",
-  entry: "./src/client/index.ts",
+  entry: "./src/client/index.tsx",
   output: {
     path: path.join(__dirname, "dist"),
     filename: "[name].bundle.js",
@@ -17,13 +17,22 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.[j|t]s$/,
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.[j|t]sx?$/,
+        exclude: /node_modules/,
         enforce: "pre",
         use: ["source-map-loader"],
       },
       {
         test: /.tsx?$/,
+        exclude: /node_modules/,
         use: [
+          {
+            loader: "babel-loader",
+          },
           {
             loader: "ts-loader",
             options: {
@@ -31,6 +40,11 @@ module.exports = {
             },
           },
         ],
+      },
+      {
+        test: /.js$/,
+        exclude: /node_modules/,
+        use: "babel-loader",
       },
     ],
   },
