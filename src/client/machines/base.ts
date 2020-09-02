@@ -39,7 +39,7 @@ export abstract class Machine extends MessageHandler<SocketIOClient.Socket> {
    * @param message the message
    */
   sendToPeer(id: number, message: any) {
-    const event = Reflect.getMetadata("event", message);
+    const event = Reflect.getMetadata("event", message.constructor);
     if (!event) {
       console.error(
         "[MachineBase] Cannot send message to server. Did you forget @registerMessage?"
