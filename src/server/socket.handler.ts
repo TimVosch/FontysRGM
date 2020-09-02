@@ -1,6 +1,5 @@
 import SocketIO from "socket.io";
 import { Server } from "http";
-import { MessageParser } from "../common/message.parser";
 import { ClientElbowshake } from "../common/messages/elbowshake.client";
 import { ClientHandler } from "./client.handler";
 import { ServerElbowshake } from "../common/messages/elbowshake.server";
@@ -18,6 +17,10 @@ export class SocketHandler extends MessageHandler {
     this.server.on("connection", this.onConnection.bind(this));
   }
 
+  /**
+   * Fired when a new WebSocket client connects
+   * @param client
+   */
   onConnection(client: SocketIO.Socket) {
     console.log("[SocketHandler] New connection");
 
@@ -28,6 +31,11 @@ export class SocketHandler extends MessageHandler {
     });
   }
 
+  /**
+   * Fired when the client initiates an Elbowshake
+   * @param message
+   * @param client
+   */
   @listen(ClientElbowshake)
   onClientElbowshake(message: ClientElbowshake, client: SocketIO.Socket) {
     // Reject client if this RGM ID is already in use
@@ -49,7 +57,7 @@ export class SocketHandler extends MessageHandler {
     }
 
     // Create the client handler
-    const clientHandler = new ClientHandler(client);
+    const clientHandler = new ClientHandler(client, message.id);
     this.clients[message.id] = clientHandler;
 
     // Free RGM ID when disconnected
