@@ -1,7 +1,6 @@
-import { Machine } from "./base";
-import { PeerOpenTerminal } from "../../common/messages/openTerminal.peer";
-import { PeerMakeAlert } from "../../common/messages/makeAlert.peer";
-import { PeerCloseAlert } from "../../common/messages/closeAlert.peer";
+import { Machine } from "../machine.base";
+import { PeerOpenTerminal } from "../../../common/messages/openTerminal.peer";
+import { PeerMakeAlert } from "../../../common/messages/makeAlert.peer";
 
 export default class RGM51 extends Machine {
   readonly id = 51;

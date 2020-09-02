@@ -1,0 +1,184 @@
+#rgm52 {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-image: url("https://news-cdn.softpedia.com/images/news2/did-you-know-the-windows-xp-wallpaper-was-so-expensive-fedex-refused-to-ship-it-520483-2.jpg");
+  background-size: cover;
+}
+
+#rgm52 .hide {
+  display: none;
+}
+
+#rgm52 .popup {
+  display: none;
+  flex-direction: column;
+  position: relative;
+  margin: 0;
+  background: black;
+  overflow: hidden;
+  height: 580px;
+  width: 80%;
+  background: rgba(107, 172, 247, 1);
+  background: -moz-radial-gradient(
+    center,
+    ellipse cover,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(19, 97, 199, 1) 66%,
+    rgba(19, 97, 199, 1) 100%
+  );
+  background: -webkit-gradient(
+    radial,
+    center center,
+    0px,
+    center center,
+    100%,
+    color-stop(0%, rgba(107, 172, 247, 1)),
+    color-stop(0%, rgba(107, 172, 247, 1)),
+    color-stop(66%, rgba(19, 97, 199, 1)),
+    color-stop(100%, rgba(19, 97, 199, 1))
+  );
+  background: -webkit-radial-gradient(
+    center,
+    ellipse cover,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(19, 97, 199, 1) 66%,
+    rgba(19, 97, 199, 1) 100%
+  );
+  background: -o-radial-gradient(
+    center,
+    ellipse cover,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(19, 97, 199, 1) 66%,
+    rgba(19, 97, 199, 1) 100%
+  );
+  background: -ms-radial-gradient(
+    center,
+    ellipse cover,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(19, 97, 199, 1) 66%,
+    rgba(19, 97, 199, 1) 100%
+  );
+  background: radial-gradient(
+    ellipse at center,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(107, 172, 247, 1) 0%,
+    rgba(19, 97, 199, 1) 66%,
+    rgba(19, 97, 199, 1) 100%
+  );
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#6bacf7', endColorstr='#1361c7', GradientType=1 );
+
+  -webkit-box-shadow: inset 0px 17px 6px -17px rgba(107, 172, 247, 1);
+  box-shadow: inset 0px 17px 6px -17px rgba(107, 172, 247, 1);
+  border-radius: 5px;
+  padding: 5px;
+  padding-top: 0px;
+}
+
+#rgm52 .popup-container {
+  background: black;
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  padding: 10px;
+}
+
+#rgm52 .popup-toolbar {
+  font-size: 20px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  color: white;
+  padding: 10px;
+}
+
+#rgm52 * {
+  box-sizing: border-box;
+}
+
+#rgm52 p {
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 4.1vh;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  color: limegreen;
+  text-shadow: 0px 0px 10px limegreen;
+}
+
+#rgm52 .msg {
+  font-family: monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 5vh;
+  padding-top: 5vh;
+  background: red;
+  box-shadow: 0 0 30px red;
+  text-shadow: 0 0 20px white;
+  color: white;
+  width: 500px;
+  height: 180px;
+  margin: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  text-align: center;
+  min-width: 200px;
+  animation-name: blink;
+  animation-duration: 0.6s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: linear;
+  display: none;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+#rgm52 .msg.active {
+  display: initial;
+}
+
+#rgm52 .popup.active {
+  display: flex;
+  -webkit-animation: scale-in-center 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    both;
+  animation: scale-in-center 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@-webkit-keyframes scale-in-center {
+  0% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes scale-in-center {
+  0% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1;
+  }
+}

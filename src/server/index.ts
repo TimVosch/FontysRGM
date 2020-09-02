@@ -2,6 +2,7 @@ import "source-map-support/register";
 import dotenv from "dotenv";
 dotenv.config();
 
+import path from "path";
 import express from "express";
 import { createServer } from "http";
 import { SocketHandler } from "./socket.handler";

@@ -1,7 +1,7 @@
-import { MessageHandler } from "../common/message.handler";
-import { ClientElbowshake } from "../common/messages/elbowshake.client";
-import { listen } from "../common/decorators/listen.decorator";
-import { ServerElbowshake } from "../common/messages/elbowshake.server";
+import { MessageHandler } from "../../common/message.handler";
+import { ClientElbowshake } from "../../common/messages/elbowshake.client";
+import { listen } from "../../common/decorators/listen.decorator";
+import { ServerElbowshake } from "../../common/messages/elbowshake.server";
 
 export class ServerHandler extends MessageHandler<SocketIOClient.Socket> {
   private readonly rgmID: number;
