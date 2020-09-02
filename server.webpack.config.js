@@ -14,7 +14,7 @@ module.exports = {
     extensions: [".js", ".ts", ".tsx"],
   },
   target: "node",
-  devtool: "inline-cheap-source-map",
+  devtool: "source-map",
   externals: [nodeExternals()],
   module: {
     rules: [

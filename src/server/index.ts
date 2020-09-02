@@ -1,3 +1,4 @@
+import "source-map-support/register";
 import express from "express";
 import { createServer } from "http";
 import { SocketHandler } from "./socket.handler";
