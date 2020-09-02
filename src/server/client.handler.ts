@@ -4,13 +4,16 @@ import { ServerStartSequence } from "../common/messages/startSequence.server";
 
 export class ClientHandler extends MessageHandler<SocketIO.Socket> {
   private readonly id: number;
+  private firebaseCallbackValue: any;
 
   constructor(client: SocketIO.Socket, id: number) {
     super(client);
     this.socket = client;
     this.id = id;
 
-    firebase().on("trigger", this.onFirebaseUpdate.bind(this));
+    this.firebaseCallbackValue = firebase().onChange(
+      this.onFirebaseUpdate.bind(this)
+    );
   }
 
   onFirebaseUpdate(node) {
@@ -37,7 +40,6 @@ export class ClientHandler extends MessageHandler<SocketIO.Socket> {
 
   onDisconnect() {
     console.log(`[ClientHandler] disconnected`);
-
-    firebase().off("trigger", this.onFirebaseUpdate.bind(this));
+    firebase().stop(this.firebaseCallbackValue);
   }
 }

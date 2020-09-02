@@ -3,13 +3,11 @@ import "firebase/database";
 import { EventEmitter } from "events";
 
 let instance: FirebaseClass = null;
-export class FirebaseClass extends EventEmitter {
+export class FirebaseClass {
   private readonly app: _firebase.app.App;
   private readonly database: _firebase.database.Database;
-  private firebaseCallbackValue: any;
 
   constructor(config: any) {
-    super();
     this.app = _firebase.initializeApp(config);
     this.database = this.app.database();
   }
@@ -17,20 +15,18 @@ export class FirebaseClass extends EventEmitter {
   /**
    * Starts listening for firebase updates
    */
-  start() {
-    this.firebaseCallbackValue = this.database
-      .ref("/chain/")
-      .on("value", (value) => {
-        const node = value.val().node;
-        this.emit("trigger", node);
-      });
+  onChange(listener: Function) {
+    return this.database.ref("/chain/").on("value", (value) => {
+      const node = value.val().node;
+      listener(node);
+    });
   }
 
   /**
    *
    */
-  stop() {
-    this.database.ref("/chain/").off(this.firebaseCallbackValue);
+  stop(firebaseValue: any) {
+    this.database.ref("/chain/").off("value", firebaseValue);
   }
 }
 

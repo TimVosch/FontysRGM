@@ -26,7 +26,7 @@ const bootstrap = async () => {
   const socket = SocketIO();
   const handler = new ServerHandler(socket, rgmID);
 
-  const Machine = await loadMachine(rgmID);
-  const machine = new Machine(socket);
+  const MachineCTOR = await loadMachine(rgmID);
+  const machine = new MachineCTOR(socket);
 };
 bootstrap();
