@@ -11,6 +11,11 @@ export default class RGM52 extends Machine {
   popup: HTMLElement = document.getElementById("popup");
   console: HTMLElement = document.getElementById("console");
 
+  constructor(socket: SocketIOClient.Socket) {
+    super(socket);
+    document.getElementById("RGM51").classList.remove("hide");
+  }
+
   onStart(): void {
     this.finish();
   }
