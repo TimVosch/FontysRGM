@@ -11,10 +11,16 @@ import { ServerRTPCapabilities } from "../common/messages/rtc/rtpCapabilities.se
 import { ClientRecvTransport } from "../common/messages/rtc/recvTransport.client";
 import { ServerRecvTransport } from "../common/messages/rtc/recvTransport.server";
 import { ClientConnectTransport } from "../common/messages/rtc/connectTransport.client";
+import { ClientJoinRTC } from "../common/messages/rtc/joinRTC.client";
+import { ClientNewProducer } from "../common/messages/rtc/newProducer.client";
+import { ServerNewConsumer } from "../common/messages/rtc/newConsumer.server";
 
 export class ViewerHandler {
   private readonly handler: MessageHandler;
   private transports: Record<string, mediasoup.types.WebRtcTransport> = {};
+  private sendTransport: mediasoup.types.WebRtcTransport;
+  private recvTransport: mediasoup.types.WebRtcTransport;
+  private producer: mediasoup.types.Producer;
 
   constructor(public readonly client: SocketIO.Socket) {
     this.handler = new MessageHandler(this, client);
@@ -40,6 +46,7 @@ export class ViewerHandler {
     msg.sctpParameters = transport.sctpParameters;
 
     this.transports[transport.id] = transport;
+    this.sendTransport = transport;
 
     this.handler.send(msg);
   }
@@ -57,6 +64,7 @@ export class ViewerHandler {
     msg.sctpParameters = transport.sctpParameters;
 
     this.transports[transport.id] = transport;
+    this.recvTransport = transport;
 
     this.handler.send(msg);
   }
@@ -84,5 +92,33 @@ export class ViewerHandler {
       dtlsParameters: message.dtlsParameters,
     });
     console.log(`[ViewerHandler] Transport to client connected`);
+  }
+
+  @listen(ClientJoinRTC)
+  async onClientJoin() {
+    const consumer = await this.recvTransport.consume({
+      producerId: this.sendTransport.id,
+      paused: true,
+    });
+  }
+
+  @listen(ClientNewProducer)
+  async onNewProducer(message: ClientNewProducer) {
+    this.producer = await this.sendTransport.produce({
+      kind: "video",
+      rtpParameters: message.rtpParameters,
+    });
+
+    const consumer = await this.recvTransport.consume({
+      producerId: this.producer.id,
+      paused: true,
+    });
+
+    const msg = new ServerNewConsumer();
+    msg.id = consumer.id;
+    msg.kind = consumer.kind;
+    msg.producerId = this.producer.id;
+    msg.rtpParameters = message.rtpParameters;
+    this.handler.send(msg);
   }
 }

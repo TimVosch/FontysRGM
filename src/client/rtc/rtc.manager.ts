@@ -11,6 +11,9 @@ import { EventEmitter } from "events";
 import { ClientConnectTransport } from "../../common/messages/rtc/connectTransport.client";
 import { ClientTransportStats } from "../../common/messages/rtc/transportStats.client";
 import { ServerTransportStats } from "../../common/messages/rtc/transportStats.server";
+import { ClientJoinRTC } from "../../common/messages/rtc/joinRTC.client";
+import { ClientNewProducer } from "../../common/messages/rtc/newProducer.client";
+import { ServerNewConsumer } from "../../common/messages/rtc/newConsumer.server";
 
 export class RTCManager extends EventEmitter {
   private handler: MessageHandler;
@@ -36,6 +39,10 @@ export class RTCManager extends EventEmitter {
     this.handler.send(new ClientRecvTransport());
   }
 
+  join() {
+    this.handler.send(new ClientJoinRTC());
+  }
+
   getStats() {
     const msg = new ClientTransportStats();
     msg.id = this.sendTransport.id;
@@ -49,21 +56,7 @@ export class RTCManager extends EventEmitter {
     } as any);
 
     // Get the video track
-    const track = mediaStream.getVideoTracks()[0];
-
-    // Create a producer on the transport
-    this.producer = await this.sendTransport.produce({
-      track,
-      encodings: [
-        {
-          maxBitrate: 10000,
-          maxFramerate: 15,
-        },
-      ],
-      codecOptions: {
-        videoGoogleStartBitrate: 1000,
-      },
-    });
+    return mediaStream.getVideoTracks()[0];
   }
 
   onSendTransportConnect({ dtlsParameters }, callback, error) {
@@ -79,6 +72,10 @@ export class RTCManager extends EventEmitter {
 
   onSendTransportProduce() {
     console.log(`Send transport produce`);
+
+    const msg = new ClientNewProducer();
+    msg.rtpParameters = this.producer.rtpParameters;
+    this.handler.send(msg);
   }
 
   onRecvTransportConnect({ dtlsParameters }) {
@@ -124,7 +121,21 @@ export class RTCManager extends EventEmitter {
     this.sendTransport.on("produce", this.onSendTransportProduce.bind(this));
 
     console.log("Created SEND transport");
-    await this.activateCamera();
+    const track = await this.activateCamera();
+
+    // Create a producer on the transport
+    this.producer = await this.sendTransport.produce({
+      track,
+      encodings: [
+        {
+          maxBitrate: 10000,
+          maxFramerate: 15,
+        },
+      ],
+      codecOptions: {
+        videoGoogleStartBitrate: 1000,
+      },
+    });
   }
 
   @listen(ServerRecvTransport)
@@ -153,5 +164,10 @@ export class RTCManager extends EventEmitter {
   @listen(ServerTransportStats)
   onTransportStats(message: ServerTransportStats) {
     console.log(message.stats[0]);
+  }
+
+  @listen(ServerNewConsumer)
+  onNewConsumer(message: ServerNewConsumer) {
+    const consumer = this.recvTransport.consume(message as any);
   }
 }

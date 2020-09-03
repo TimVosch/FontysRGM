@@ -24,7 +24,7 @@ export class Viewer extends Component<ViewerProps> {
     this.initializeWS();
 
     this.rtcManager.initialize();
-    this.rtcManager.on('initialized', this.startMedia.bind(this));
+    this.rtcManager.on("initialized", this.startMedia.bind(this));
   }
 
   /**
@@ -49,10 +49,15 @@ export class Viewer extends Component<ViewerProps> {
   }
 
   render() {
-    return (<div>
-      <h1>Viewer!</h1>
-      <VideoConsumer rtcManager={this.rtcManager} />
-      <Broadcaster rtcManager={this.rtcManager} />
-    </div>);
+    return (
+      <div>
+        <h1>Viewer!</h1>
+        <VideoConsumer rtcManager={this.rtcManager} />
+        <Broadcaster rtcManager={this.rtcManager} />
+        <button onClick={this.rtcManager.join.bind(this.rtcManager)}>
+          Start
+        </button>
+      </div>
+    );
   }
 }
