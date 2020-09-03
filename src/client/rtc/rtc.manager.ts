@@ -178,6 +178,7 @@ export class RTCManager {
   async getStats() {
     const req = new RequestTransportStats();
     req.id = this.producingTransport;
+
     const res = await this.handler.request(req, ResponseTransportStats);
     return res.stats;
   }
