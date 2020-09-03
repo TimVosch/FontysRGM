@@ -34,7 +34,8 @@ export const extractListeners = (klass: object) => {
           `[UTIL] Multiple listeners for event ${event}. Only one will fire!`
         );
       }
-      messageListeners[event] = func;
+      // XXX: ehhhhhhhhhhhhhhhhhhhhh bind? Breaks only RPC Listeners no others. WTF?
+      messageListeners[event] = func.bind(klass);
     }
   });
 

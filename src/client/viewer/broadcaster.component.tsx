@@ -7,7 +7,11 @@ interface BroadcasterProps {
 }
 
 export class Broadcaster extends React.Component<BroadcasterProps> {
-  async onStart() {
+  constructor(props: Readonly<BroadcasterProps>) {
+    super(props);
+  }
+
+  async startStream() {
     console.log("Starting camera stream");
     const producer = await this.props.rtcManager.streamCamera();
 
@@ -23,7 +27,9 @@ export class Broadcaster extends React.Component<BroadcasterProps> {
     return (
       <div>
         <h1>Broadcaster</h1>
-        <button onClick={this.onStart.bind(this)}>Start broadcasting</button>
+        <button onClick={this.startStream.bind(this)}>
+          Start broadcasting
+        </button>
         <button onClick={this.onStatsClick.bind(this)}>stats</button>
       </div>
     );

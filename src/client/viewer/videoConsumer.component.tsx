@@ -23,7 +23,11 @@ export class VideoConsumer extends React.Component<
     };
   }
 
-  async onStart() {
+  componentDidMount() {
+    this.startConsuming();
+  }
+
+  async startConsuming() {
     console.log("Starting consuming");
     if (this.props.producerId === null) {
       console.warn("ProducerID is null, will not consume!");
@@ -32,7 +36,9 @@ export class VideoConsumer extends React.Component<
         this.props.producerId
       );
 
-      const el = document.getElementById("ConsumerVideoEl") as HTMLVideoElement;
+      const el = document.getElementById(
+        "ConsumerVideoEl-" + this.props.producerId
+      ) as HTMLVideoElement;
       const stream = new MediaStream();
       stream.addTrack(consumer.track.clone());
       el.srcObject = stream;
@@ -43,13 +49,13 @@ export class VideoConsumer extends React.Component<
     return (
       <div>
         <h1>Consumer</h1>
-        <button onClick={this.onStart.bind(this)}>Start consuming</button>
+        {/* <button onClick={this.startConsuming.bind(this)}>Start consuming</button> */}
         <video
           autoPlay
           playsInline
           muted
           controls={false}
-          id="ConsumerVideoEl"
+          id={"ConsumerVideoEl-" + this.props.producerId}
           style={{ width: "400px", height: "300px" }}
         ></video>
       </div>

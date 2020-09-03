@@ -15,9 +15,12 @@ import { RequestNewConsumer } from "../common/messages/rtc/newConsumer.request";
 import { ResponseNewConsumer } from "../common/messages/rtc/newConsumer.response";
 import { RequestTransportStats } from "../common/messages/rtc/transportStats.request";
 import { ResponseTransportStats } from "../common/messages/rtc/transportStats.response";
+import { SocketHandler } from "./socket.handler";
+import { ServerBroadcastNewProducer } from "../common/messages/broadcastNewProducer.server";
 
 export class ViewerHandler {
   private readonly handler: MessageHandler;
+  private producerId: string | null;
 
   constructor(public readonly client: SocketIO.Socket) {
     this.handler = new MessageHandler(this, client);
@@ -67,6 +70,18 @@ export class ViewerHandler {
       rtpParameters
     );
 
+    this.producerId = producer.id;
+
+    // TODO: REMOVE
+    Object.keys(SocketHandler.viewers).forEach((rgmID) => {
+      const viewerClient = SocketHandler.viewers[parseInt(rgmID)];
+
+      const msg = new ServerBroadcastNewProducer();
+      msg.producerId = this.producerId;
+
+      viewerClient.handler.send(msg);
+    });
+
     const msg = new ResponseNewProducer();
     msg.id = producer.id;
     return msg;
@@ -104,5 +119,9 @@ export class ViewerHandler {
   onTest() {
     const msg = new ServerTest();
     return msg;
+  }
+
+  getProducerId() {
+    return this.producerId;
   }
 }

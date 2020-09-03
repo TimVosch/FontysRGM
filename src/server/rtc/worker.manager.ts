@@ -6,7 +6,10 @@ export class RTCServerClass {
   private room: RTCRoom;
 
   async start() {
-    this.worker = await ms.createWorker();
+    this.worker = await ms.createWorker({
+      rtcMinPort: 55000,
+      rtcMaxPort: 56000,
+    });
     console.log("[RTCServer] Worker started!");
 
     this.worker.on("died", () => {

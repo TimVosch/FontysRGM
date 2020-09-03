@@ -9,13 +9,15 @@ import { Broadcaster } from "./broadcaster.component";
 import { ClientTest } from "../../common/messages/test.client";
 import { ServerTest } from "../../common/messages/test.server";
 import { RTCManager } from "../rtc/rtc.manager";
+import { ServerBroadcastNewProducer } from "../../common/messages/broadcastNewProducer.server";
+import { listen } from "../../common/decorators/listen.decorator";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
 }
 
 interface ViewerState {
-  producerId: string;
+  producers: string[];
 }
 
 export class Viewer extends Component<ViewerProps, ViewerState> {
@@ -26,7 +28,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     super(props);
 
     this.state = {
-      producerId: null,
+      producers: [],
     };
 
     this.handler = new MessageHandler(this, props.socket);
@@ -58,19 +60,29 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
   }
 
   async onBroadcastStart(producerId: string) {
-    console.log("Broadcast started");
+    console.log(`Broadcast started. We are: ${producerId}`);
+  }
 
+  @listen(ServerBroadcastNewProducer)
+  onNewBroadcaster(message: ServerBroadcastNewProducer) {
+    const { producers } = this.state;
     this.setState({
-      producerId,
+      producers: [...producers, message.producerId],
     });
   }
 
   render() {
-    const { producerId } = this.state;
+    const { producers } = this.state;
+    console.log(producers);
+
+    const screens = producers.map((id) => (
+      <VideoConsumer rtcManager={this.rtcManager} producerId={id} key={id} />
+    ));
+
     return (
       <div>
         <h1>Viewer!</h1>
-        <VideoConsumer rtcManager={this.rtcManager} producerId={producerId} />
+        {screens}
         <Broadcaster
           rtcManager={this.rtcManager}
           onStart={this.onBroadcastStart.bind(this)}
