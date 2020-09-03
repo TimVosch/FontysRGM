@@ -7,24 +7,15 @@ interface VideoConsumerProps {
   producerId: string;
 }
 
-interface VideoConsumerState {
-  consumer: ms.types.Consumer;
-}
-
-export class VideoConsumer extends React.Component<
-  VideoConsumerProps,
-  VideoConsumerState
-> {
-  constructor(props: Readonly<VideoConsumerProps>) {
-    super(props);
-
-    this.state = {
-      consumer: null,
-    };
-  }
+export class VideoConsumer extends React.Component<VideoConsumerProps> {
+  private consumer: ms.types.Consumer;
 
   componentDidMount() {
     this.startConsuming();
+  }
+
+  componentWillUnmount() {
+    if (this.consumer) this.consumer.close();
   }
 
   async startConsuming() {
@@ -32,15 +23,16 @@ export class VideoConsumer extends React.Component<
     if (this.props.producerId === null) {
       console.warn("ProducerID is null, will not consume!");
     } else {
-      const consumer = await this.props.rtcManager.createConsumer(
+      this.consumer = await this.props.rtcManager.createConsumer(
         this.props.producerId
       );
 
+      // Set video el source to consumer
       const el = document.getElementById(
         "ConsumerVideoEl-" + this.props.producerId
       ) as HTMLVideoElement;
       const stream = new MediaStream();
-      stream.addTrack(consumer.track.clone());
+      stream.addTrack(this.consumer.track.clone());
       el.srcObject = stream;
     }
   }

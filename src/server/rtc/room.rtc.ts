@@ -30,9 +30,11 @@ export class RTCRoom {
     });
     this.transports[transport.id] = transport;
 
-    // Remove when closed
-    transport.on("close", () => {
-      delete this.transports[transport.id];
+    transport.on("dtlsstatechange", (state) => {
+      if (state === "closed" || state === "failed") {
+        console.log(`[RTCRoom] Transport ${transport.id} closed`);
+        delete this.transports[transport.id];
+      }
     });
 
     return transport;

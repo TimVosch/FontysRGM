@@ -1,4 +1,5 @@
 import React from "react";
+import * as ms from "mediasoup-client";
 import { RTCManager } from "../rtc/rtc.manager";
 
 interface BroadcasterProps {
@@ -7,8 +8,10 @@ interface BroadcasterProps {
 }
 
 export class Broadcaster extends React.Component<BroadcasterProps> {
-  constructor(props: Readonly<BroadcasterProps>) {
-    super(props);
+  producer: ms.types.Producer;
+
+  componentWillUnmount() {
+    if (this.producer) this.producer.close();
   }
 
   async startStream() {
