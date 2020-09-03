@@ -132,7 +132,9 @@ export class SocketHandler {
 
   private sendViewersToAdmin() {
     const viewersMessage = new ServerViewers();
-    viewersMessage.viewers = Object.keys(SocketHandler.viewers).map(parseInt);
+    viewersMessage.viewers = Object.keys(SocketHandler.viewers).map((a) =>
+      parseInt(a)
+    );
     for (const admin of SocketHandler.admins) {
       if (admin) {
         admin.handler.send(viewersMessage);
