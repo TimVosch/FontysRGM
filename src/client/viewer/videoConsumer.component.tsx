@@ -1,17 +1,16 @@
 import React from "react";
-import { MessageHandler } from "../message.handler";
+import { RTCManager } from "../rtc/rtc.manager";
 
 interface VideoConsumerProps {
-  socket: SocketIOClient.Socket;
+  rtcManager: RTCManager;
 }
 
 export class VideoConsumer extends React.Component<VideoConsumerProps> {
-  private handler: MessageHandler;
+  rtcManager: RTCManager;
 
   constructor(props: Readonly<VideoConsumerProps>) {
     super(props);
-
-    this.handler = new MessageHandler(this, props.socket);
+    this.rtcManager = props.rtcManager;
   }
 
   render() {

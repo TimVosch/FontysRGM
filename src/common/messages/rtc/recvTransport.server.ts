@@ -1,8 +1,7 @@
 import { registerMessage } from "../../decorators/message.decorator";
 
 @registerMessage()
-export class ServerRequestTransport {
-  rtpCapabilties: any;
+export class ServerRecvTransport {
   id: string;
   iceParameters: any;
   iceCandidates: any[];

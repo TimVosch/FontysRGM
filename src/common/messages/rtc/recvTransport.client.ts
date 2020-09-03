@@ -1,4 +1,4 @@
 import { registerMessage } from "../../decorators/message.decorator";
 
 @registerMessage()
-export class ClientRequestTransport {}
+export class ClientRecvTransport { }

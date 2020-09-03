@@ -6,6 +6,7 @@ import {
 } from "../../common/messages/elbowshake.client";
 import { VideoConsumer } from "./videoConsumer.component";
 import { Broadcaster } from "./broadcaster.component";
+import { RTCManager } from "../rtc/rtc.manager";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
@@ -13,17 +14,17 @@ interface ViewerProps {
 
 export class Viewer extends Component<ViewerProps> {
   handler: MessageHandler;
-  broadcaster: Broadcaster;
+  rtcManager: RTCManager;
 
   constructor(props: Readonly<ViewerProps>) {
     super(props);
 
-    this.state = {
-      stats: {}
-    }
-
     this.handler = new MessageHandler(this, props.socket);
+    this.rtcManager = new RTCManager(props.socket);
     this.initializeWS();
+
+    this.rtcManager.initialize();
+    this.rtcManager.on('initialized', this.startMedia.bind(this));
   }
 
   /**
@@ -38,6 +39,11 @@ export class Viewer extends Component<ViewerProps> {
     this.handler.send(elbowshakeMSG);
   }
 
+  startMedia() {
+    this.rtcManager.startProducer();
+    this.rtcManager.startConsumer();
+  }
+
   componentWillUnmount() {
     this.handler.close();
   }
@@ -45,8 +51,8 @@ export class Viewer extends Component<ViewerProps> {
   render() {
     return (<div>
       <h1>Viewer!</h1>
-      <VideoConsumer socket={this.props.socket} />
-      <Broadcaster socket={this.props.socket} />
+      <VideoConsumer rtcManager={this.rtcManager} />
+      <Broadcaster rtcManager={this.rtcManager} />
     </div>);
   }
 }

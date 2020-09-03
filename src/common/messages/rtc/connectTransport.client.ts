@@ -1,5 +1,6 @@
 import { registerMessage } from "../../decorators/message.decorator";
 
 @registerMessage()
-export class ClientTransportStats {
+export class ClientConnectTransport {
+  dtlsParameters: any;
 }
