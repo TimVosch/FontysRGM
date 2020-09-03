@@ -98,14 +98,11 @@ export class RTCManager {
     ).getVideoTracks()[0];
 
     // Start producer
-    const bitrate = !!process.env.RTC_BITRATE
-      ? parseInt(process.env.RTC_BITRATE)
-      : 100000;
     return await transport.produce({
       track: camera,
       encodings: [
         {
-          maxBitrate: bitrate,
+          maxBitrate: 3000000,
           maxFramerate: 60,
         },
       ],
