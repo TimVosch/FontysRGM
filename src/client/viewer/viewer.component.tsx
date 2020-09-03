@@ -43,7 +43,7 @@ export class Viewer extends Component<ViewerProps> {
     this.handler.close();
   }
 
-  async onStart() {
+  async onTest() {
     const msg = new ClientTest();
     const response = await this.handler.request(msg, ServerTest);
     console.log(response);
@@ -54,8 +54,8 @@ export class Viewer extends Component<ViewerProps> {
       <div>
         <h1>Viewer!</h1>
         <VideoConsumer />
-        <Broadcaster />
-        <button onClick={this.onStart.bind(this)}>Start</button>
+        <Broadcaster rtcManager={this.rtcManager} />
+        <button onClick={this.onTest.bind(this)}>Test</button>
       </div>
     );
   }

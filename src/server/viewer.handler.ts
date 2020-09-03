@@ -5,6 +5,12 @@ import { ServerTest } from "../common/messages/test.server";
 import { RequestRTPCapabilities } from "../common/messages/rtc/rtpCapabilities.request";
 import { RTCServer } from "./rtc/worker.manager";
 import { ResponseRTPCapabilities } from "../common/messages/rtc/rtpCapabilities.response";
+import { RequestCreateTransport } from "../common/messages/rtc/createTransport.request";
+import { ResponseCreateTransport } from "../common/messages/rtc/createTransport.response";
+import { RequestConnectTransport } from "../common/messages/rtc/connectTransport.request";
+import { ResponseConnectTransport } from "../common/messages/rtc/connectTransport.response";
+import { RequestNewProducer } from "../common/messages/rtc/newProducer.request";
+import { ResponseNewProducer } from "../common/messages/rtc/newProducer.response";
 
 export class ViewerHandler {
   private readonly handler: MessageHandler;
@@ -17,6 +23,48 @@ export class ViewerHandler {
   onRTPCapabilitiesRequest() {
     const msg = new ResponseRTPCapabilities();
     msg.rtpCapabilities = RTCServer.getRoom().getRTPCapabilities();
+    return msg;
+  }
+
+  @listen(RequestCreateTransport)
+  async onRequestCreateTransport() {
+    const transport = await RTCServer.getRoom().createTransport();
+
+    // Build response
+    const msg = new ResponseCreateTransport();
+    msg.id = transport.id;
+    msg.iceCandidates = transport.iceCandidates;
+    msg.iceParameters = transport.iceParameters;
+    msg.dtlsParameters = transport.dtlsParameters;
+    msg.sctpParameters = transport.sctpParameters;
+
+    return msg;
+  }
+
+  @listen(RequestConnectTransport)
+  async onRequestConnectTransport(message: RequestConnectTransport) {
+    try {
+      await RTCServer.getRoom().connectTransport(
+        message.id,
+        message.dtlsParameters
+      );
+      return new ResponseConnectTransport();
+    } catch (e) {
+      console.error(e);
+      return;
+    }
+  }
+
+  @listen(RequestNewProducer)
+  async onRequestNewProducer({ id, kind, rtpParameters }: RequestNewProducer) {
+    const producer = await RTCServer.getRoom().newProducer(
+      id,
+      kind as any,
+      rtpParameters
+    );
+
+    const msg = new ResponseNewProducer();
+    msg.id = producer.id;
     return msg;
   }
 
