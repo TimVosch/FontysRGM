@@ -95,12 +95,12 @@ export class RTCManager {
       track,
       encodings: [
         {
-          maxBitrate: 3000000,
-          maxFramerate: 60,
+          maxBitrate: 300000,
+          maxFramerate: 30,
         },
       ],
       codecOptions: {
-        videoGoogleStartBitrate: 3000000,
+        videoGoogleStartBitrate: 500000,
       },
     });
   }
