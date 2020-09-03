@@ -19,10 +19,10 @@ export class RTCRoom {
    */
   async createTransport() {
     const listenIps = !!process.env.LISTEN_IPS
-      ? process.env.LISTEN_IPS
-      : "127.0.0.1";
+      ? JSON.parse(process.env.LISTEN_IPS)
+      : ["127.0.0.1"];
     const transport = await this.router.createWebRtcTransport({
-      listenIps: listenIps.split(","),
+      listenIps: listenIps,
       enableTcp: true,
       enableUdp: true,
       preferUdp: true,
