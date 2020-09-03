@@ -1,5 +1,5 @@
 import { MessageHandler } from "../message.handler";
-import * as mediasoup from 'mediasoup-client';
+import * as mediasoup from "mediasoup-client";
 import { ClientRTPCapabilities } from "../../common/messages/rtc/rtpCapabilities.client";
 import { ServerRTPCapabilities } from "../../common/messages/rtc/rtpCapabilities.server";
 import { listen } from "../../common/decorators/listen.decorator";
@@ -37,7 +37,9 @@ export class RTCManager extends EventEmitter {
   }
 
   getStats() {
-    this.handler.send(new ClientTransportStats());
+    const msg = new ClientTransportStats();
+    msg.id = this.sendTransport.id;
+    this.handler.send(msg);
   }
 
   async activateCamera() {
@@ -64,22 +66,28 @@ export class RTCManager extends EventEmitter {
     });
   }
 
-  onSendTransportConnect({ dtlsParameters }) {
+  onSendTransportConnect({ dtlsParameters }, callback, error) {
     console.log(`Send transport is connected`);
 
     const msg = new ClientConnectTransport();
+    msg.id = this.sendTransport.id;
     msg.dtlsParameters = dtlsParameters;
     this.handler.send(msg);
+
+    setTimeout(callback, 200);
   }
 
   onSendTransportProduce() {
     console.log(`Send transport produce`);
   }
 
-  onRecvTransportConnect(dtls) {
+  onRecvTransportConnect({ dtlsParameters }) {
     console.log(`Recv transport is connected`);
-    console.log(dtls);
 
+    const msg = new ClientConnectTransport();
+    msg.id = this.sendTransport.id;
+    msg.dtlsParameters = dtlsParameters;
+    this.handler.send(msg);
   }
 
   @listen(ServerRTPCapabilities)
@@ -91,19 +99,29 @@ export class RTCManager extends EventEmitter {
       routerRtpCapabilities: message.rtpCapabilties,
     });
 
-    this.emit('initialized');
+    this.emit("initialized");
   }
 
   @listen(ServerSendTransport)
   async onSendTransport(message: ServerSendTransport) {
-    const { id, iceCandidates, iceParameters, dtlsParameters, sctpParameters } = message;
+    const {
+      id,
+      iceCandidates,
+      iceParameters,
+      dtlsParameters,
+      sctpParameters,
+    } = message;
 
     this.sendTransport = this.device.createSendTransport({
-      id, iceCandidates, iceParameters, dtlsParameters, sctpParameters,
-    })
+      id,
+      iceCandidates,
+      iceParameters,
+      dtlsParameters,
+      sctpParameters,
+    });
 
-    this.sendTransport.on('connect', this.onSendTransportConnect.bind(this))
-    this.sendTransport.on('produce', this.onSendTransportProduce.bind(this))
+    this.sendTransport.on("connect", this.onSendTransportConnect.bind(this));
+    this.sendTransport.on("produce", this.onSendTransportProduce.bind(this));
 
     console.log("Created SEND transport");
     await this.activateCamera();
@@ -111,13 +129,23 @@ export class RTCManager extends EventEmitter {
 
   @listen(ServerRecvTransport)
   onRecvTransport(message: ServerRecvTransport) {
-    const { id, iceCandidates, iceParameters, dtlsParameters, sctpParameters } = message;
+    const {
+      id,
+      iceCandidates,
+      iceParameters,
+      dtlsParameters,
+      sctpParameters,
+    } = message;
 
     this.recvTransport = this.device.createRecvTransport({
-      id, iceCandidates, iceParameters, dtlsParameters, sctpParameters,
-    })
+      id,
+      iceCandidates,
+      iceParameters,
+      dtlsParameters,
+      sctpParameters,
+    });
 
-    this.recvTransport.on('connect', this.onRecvTransportConnect.bind(this))
+    this.recvTransport.on("connect", this.onRecvTransportConnect.bind(this));
 
     console.log("Created RECV transport");
   }

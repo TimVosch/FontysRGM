@@ -14,8 +14,7 @@ import { ClientConnectTransport } from "../common/messages/rtc/connectTransport.
 
 export class ViewerHandler {
   private readonly handler: MessageHandler;
-  private sendTransport: mediasoup.types.WebRtcTransport;
-  private recvTransport: mediasoup.types.WebRtcTransport;
+  private transports: Record<string, mediasoup.types.WebRtcTransport> = {};
 
   constructor(public readonly client: SocketIO.Socket) {
     this.handler = new MessageHandler(this, client);
@@ -32,13 +31,15 @@ export class ViewerHandler {
   async onSendTransport(message: ClientSendTransport) {
     const msg = new ServerSendTransport();
 
-    this.sendTransport = await RTCServer.createRTCTransport();
+    const transport = await RTCServer.createRTCTransport();
 
-    msg.id = this.sendTransport.id;
-    msg.iceCandidates = this.sendTransport.iceCandidates;
-    msg.iceParameters = this.sendTransport.iceParameters;
-    msg.dtlsParameters = this.sendTransport.dtlsParameters;
-    msg.sctpParameters = this.sendTransport.sctpParameters;
+    msg.id = transport.id;
+    msg.iceCandidates = transport.iceCandidates;
+    msg.iceParameters = transport.iceParameters;
+    msg.dtlsParameters = transport.dtlsParameters;
+    msg.sctpParameters = transport.sctpParameters;
+
+    this.transports[transport.id] = transport;
 
     this.handler.send(msg);
   }
@@ -47,13 +48,15 @@ export class ViewerHandler {
   async onRecvTransport(message: ClientRecvTransport) {
     const msg = new ServerRecvTransport();
 
-    this.recvTransport = await RTCServer.createRTCTransport();
+    const transport = await RTCServer.createRTCTransport();
 
-    msg.id = this.recvTransport.id;
-    msg.iceCandidates = this.recvTransport.iceCandidates;
-    msg.iceParameters = this.recvTransport.iceParameters;
-    msg.dtlsParameters = this.recvTransport.dtlsParameters;
-    msg.sctpParameters = this.recvTransport.sctpParameters;
+    msg.id = transport.id;
+    msg.iceCandidates = transport.iceCandidates;
+    msg.iceParameters = transport.iceParameters;
+    msg.dtlsParameters = transport.dtlsParameters;
+    msg.sctpParameters = transport.sctpParameters;
+
+    this.transports[transport.id] = transport;
 
     this.handler.send(msg);
   }
@@ -61,7 +64,11 @@ export class ViewerHandler {
   @listen(ClientTransportStats)
   async onTransportStats(message: ClientTransportStats) {
     console.log(`[ViewerHandler] Requesting stats`);
-    const stats = await this.sendTransport.getStats();
+
+    const transport = this.transports[message.id] || null;
+    if (transport === null) return;
+
+    const stats = await transport.getStats();
 
     const msg = new ServerTransportStats();
     msg.stats = stats;
@@ -70,7 +77,12 @@ export class ViewerHandler {
 
   @listen(ClientConnectTransport)
   async onConnectTransport(message: ClientConnectTransport) {
-    await this.sendTransport.connect({ dtlsParameters: message.dtlsParameters });
+    const transport = this.transports[message.id] || null;
+    if (transport === null) return;
+
+    await transport.connect({
+      dtlsParameters: message.dtlsParameters,
+    });
     console.log(`[ViewerHandler] Transport to client connected`);
   }
 }
