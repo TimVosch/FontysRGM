@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { MessageHandler } from "../message.handler";
-import { ServerElbowshake } from "../../common/messages/elbowshake.server";
 import { listen } from "../../common/decorators/listen.decorator";
 
 interface ViewerProps {
@@ -23,9 +22,6 @@ export class Viewer extends Component<ViewerProps> {
   componentWillUnmount() {
     this.handler.close();
   }
-
-  @listen(ServerElbowshake)
-  onElbowshake() {}
 
   render() {
     return <h1>Viewer!</h1>;

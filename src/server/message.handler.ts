@@ -7,4 +7,8 @@ export class MessageHandler extends MessageHandlerBase<SocketIO.Socket> {
       next();
     });
   }
+
+  close() {
+    this.socket.disconnect();
+  }
 }

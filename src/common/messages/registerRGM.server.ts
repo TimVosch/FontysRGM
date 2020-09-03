@@ -1,8 +1,8 @@
 import { registerMessage } from "../decorators/message.decorator";
-import { IsOptional, IsString, IsBoolean } from "class-validator";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 @registerMessage()
-export class ServerElbowshake {
+export class ServerRegisterRGM {
   @IsBoolean()
   error = false;
 

@@ -5,8 +5,9 @@ import { ServerStartSequence } from "../../common/messages/startSequence.server"
 import { PeerMessage } from "../../common/messages/message.peer";
 import { ClientFinished } from "../../common/messages/finished.client";
 import { MessageHandler } from "../message.handler";
-import { ServerElbowshake } from "../../common/messages/elbowshake.server";
 import { ClientElbowshake } from "../../common/messages/elbowshake.client";
+import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
+import { ClientRegisterRGM } from "../../common/messages/registerRGM.client";
 
 interface MachineProps {
   socket: SocketIOClient.Socket;
@@ -27,21 +28,23 @@ export abstract class Machine<
 
   componentDidMount() {
     this.handler.open();
-    console.log("Sending elbowshake");
 
     // Create elbowshake
     const elbowshake = new ClientElbowshake();
-    elbowshake.id = this.id;
-
+    elbowshake.viewer = false;
     this.handler.send(elbowshake);
+
+    const registration = new ClientRegisterRGM();
+    registration.id = this.id;
+    this.handler.send(registration);
   }
 
   componentWillUnmount() {
     this.handler.close();
   }
 
-  @listen(ServerElbowshake)
-  onElbowshake(message: ServerElbowshake) {
+  @listen(ServerRegisterRGM)
+  onElbowshake(message: ServerRegisterRGM) {
     if (message.error) {
       console.log("Elbowshake rejected by server: " + message.message);
       return;

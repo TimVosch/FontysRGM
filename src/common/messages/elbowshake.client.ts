@@ -1,8 +1,8 @@
 import { registerMessage } from "../decorators/message.decorator";
-import { IsNumber } from "class-validator";
+import { IsNumber, IsBoolean } from "class-validator";
 
 @registerMessage()
 export class ClientElbowshake {
-  @IsNumber()
-  id: number;
+  @IsBoolean()
+  viewer: boolean = false;
 }
