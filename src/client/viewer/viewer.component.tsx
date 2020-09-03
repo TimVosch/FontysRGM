@@ -16,6 +16,14 @@ export class Viewer extends Component<ViewerProps> {
     this.handler = new MessageHandler(this, props.socket);
   }
 
+  componentDidMount() {
+    this.handler.open();
+  }
+
+  componentWillUnmount() {
+    this.handler.close();
+  }
+
   @listen(ServerElbowshake)
   onElbowshake() {}
 

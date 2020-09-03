@@ -26,6 +26,7 @@ export abstract class Machine<
   }
 
   componentDidMount() {
+    this.handler.open();
     console.log("Sending elbowshake");
 
     // Create elbowshake
@@ -33,6 +34,10 @@ export abstract class Machine<
     elbowshake.id = this.id;
 
     this.handler.send(elbowshake);
+  }
+
+  componentWillUnmount() {
+    this.handler.close();
   }
 
   @listen(ServerElbowshake)

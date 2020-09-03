@@ -7,7 +7,7 @@ import { RGM51Page } from "./machines/rgm51/rgm51.component";
 
 import "./app.component.css";
 
-const socket = SocketIO();
+const socket = SocketIO({ autoConnect: false });
 
 export class App extends Component {
   render() {

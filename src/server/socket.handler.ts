@@ -31,9 +31,12 @@ export class SocketHandler {
    * @param client
    */
   onConnection(client: SocketIO.Socket) {
-    console.log("[SocketHandler] New connection");
+    console.log(`[SocketHandler] New connection: ${client.id.substr(0, 4)}`);
 
     // Listen to client messages
+    client.once("disconnect", () => {
+      console.log(`[SocketHandler] Disconnected: ${client.id.substr(0, 4)}`);
+    });
     client.once(
       ClientElbowshake.name,
       this.onClientElbowshake.bind(this, client)
