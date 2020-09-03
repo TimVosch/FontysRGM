@@ -6,7 +6,7 @@ import express from "express";
 import { createServer } from "http";
 import { SocketHandler } from "./socket.handler";
 import { firebase } from "./firebase";
-import { RTCServer } from "./rtcserver";
+import { RTCServer } from "./rtc/worker.manager";
 
 const bootstrap = async () => {
   // Load firebase config

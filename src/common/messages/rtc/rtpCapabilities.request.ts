@@ -1,4 +1,4 @@
 import { registerMessage } from "../../decorators/message.decorator";
 
 @registerMessage()
-export class ClientJoinRTC {}
+export class RequestRTPCapabilities {}

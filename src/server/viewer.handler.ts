@@ -1,124 +1,108 @@
-import * as mediasoup from "mediasoup";
 import { MessageHandler } from "./message.handler";
 import { listen } from "../common/decorators/listen.decorator";
-import { ClientSendTransport } from "../common/messages/rtc/sendTransport.client";
-import { ServerSendTransport } from "../common/messages/rtc/sendTransport.server";
-import { RTCServer } from "./rtcserver";
-import { ClientTransportStats } from "../common/messages/rtc/transportStats.client";
-import { ServerTransportStats } from "../common/messages/rtc/transportStats.server";
-import { ClientRTPCapabilities } from "../common/messages/rtc/rtpCapabilities.client";
-import { ServerRTPCapabilities } from "../common/messages/rtc/rtpCapabilities.server";
-import { ClientRecvTransport } from "../common/messages/rtc/recvTransport.client";
-import { ServerRecvTransport } from "../common/messages/rtc/recvTransport.server";
-import { ClientConnectTransport } from "../common/messages/rtc/connectTransport.client";
-import { ClientJoinRTC } from "../common/messages/rtc/joinRTC.client";
-import { ClientNewProducer } from "../common/messages/rtc/newProducer.client";
-import { ServerNewConsumer } from "../common/messages/rtc/newConsumer.server";
+import { ClientTest } from "../common/messages/test.client";
+import { ServerTest } from "../common/messages/test.server";
+import { RequestRTPCapabilities } from "../common/messages/rtc/rtpCapabilities.request";
+import { RTCServer } from "./rtc/worker.manager";
+import { ResponseRTPCapabilities } from "../common/messages/rtc/rtpCapabilities.response";
+import { RequestCreateTransport } from "../common/messages/rtc/createTransport.request";
+import { ResponseCreateTransport } from "../common/messages/rtc/createTransport.response";
+import { RequestConnectTransport } from "../common/messages/rtc/connectTransport.request";
+import { ResponseConnectTransport } from "../common/messages/rtc/connectTransport.response";
+import { RequestNewProducer } from "../common/messages/rtc/newProducer.request";
+import { ResponseNewProducer } from "../common/messages/rtc/newProducer.response";
+import { RequestNewConsumer } from "../common/messages/rtc/newConsumer.request";
+import { ResponseNewConsumer } from "../common/messages/rtc/newConsumer.response";
+import { RequestTransportStats } from "../common/messages/rtc/transportStats.request";
+import { ResponseTransportStats } from "../common/messages/rtc/transportStats.response";
 
 export class ViewerHandler {
   private readonly handler: MessageHandler;
-  private transports: Record<string, mediasoup.types.WebRtcTransport> = {};
-  private sendTransport: mediasoup.types.WebRtcTransport;
-  private recvTransport: mediasoup.types.WebRtcTransport;
-  private producer: mediasoup.types.Producer;
 
   constructor(public readonly client: SocketIO.Socket) {
     this.handler = new MessageHandler(this, client);
   }
 
-  @listen(ClientRTPCapabilities)
-  async onRTPCapabilities() {
-    const msg = new ServerRTPCapabilities();
-    msg.rtpCapabilties = RTCServer.getRTPCapabilities();
-    this.handler.send(msg);
+  @listen(RequestRTPCapabilities)
+  onRTPCapabilitiesRequest() {
+    const msg = new ResponseRTPCapabilities();
+    msg.rtpCapabilities = RTCServer.getRoom().getRTPCapabilities();
+    return msg;
   }
 
-  @listen(ClientSendTransport)
-  async onSendTransport(message: ClientSendTransport) {
-    const msg = new ServerSendTransport();
+  @listen(RequestCreateTransport)
+  async onRequestCreateTransport() {
+    const transport = await RTCServer.getRoom().createTransport();
 
-    const transport = await RTCServer.createRTCTransport();
-
+    // Build response
+    const msg = new ResponseCreateTransport();
     msg.id = transport.id;
     msg.iceCandidates = transport.iceCandidates;
     msg.iceParameters = transport.iceParameters;
     msg.dtlsParameters = transport.dtlsParameters;
     msg.sctpParameters = transport.sctpParameters;
 
-    this.transports[transport.id] = transport;
-    this.sendTransport = transport;
-
-    this.handler.send(msg);
+    return msg;
   }
 
-  @listen(ClientRecvTransport)
-  async onRecvTransport(message: ClientRecvTransport) {
-    const msg = new ServerRecvTransport();
-
-    const transport = await RTCServer.createRTCTransport();
-
-    msg.id = transport.id;
-    msg.iceCandidates = transport.iceCandidates;
-    msg.iceParameters = transport.iceParameters;
-    msg.dtlsParameters = transport.dtlsParameters;
-    msg.sctpParameters = transport.sctpParameters;
-
-    this.transports[transport.id] = transport;
-    this.recvTransport = transport;
-
-    this.handler.send(msg);
+  @listen(RequestConnectTransport)
+  async onRequestConnectTransport(message: RequestConnectTransport) {
+    try {
+      await RTCServer.getRoom().connectTransport(
+        message.id,
+        message.dtlsParameters
+      );
+      return new ResponseConnectTransport();
+    } catch (e) {
+      console.error(e);
+      return;
+    }
   }
 
-  @listen(ClientTransportStats)
-  async onTransportStats(message: ClientTransportStats) {
-    console.log(`[ViewerHandler] Requesting stats`);
+  @listen(RequestNewProducer)
+  async onRequestNewProducer({ id, kind, rtpParameters }: RequestNewProducer) {
+    const producer = await RTCServer.getRoom().newProducer(
+      id,
+      kind as any,
+      rtpParameters
+    );
 
-    const transport = this.transports[message.id] || null;
-    if (transport === null) return;
-
-    const stats = await transport.getStats();
-
-    const msg = new ServerTransportStats();
-    msg.stats = stats;
-    this.handler.send(msg);
+    const msg = new ResponseNewProducer();
+    msg.id = producer.id;
+    return msg;
   }
 
-  @listen(ClientConnectTransport)
-  async onConnectTransport(message: ClientConnectTransport) {
-    const transport = this.transports[message.id] || null;
-    if (transport === null) return;
+  @listen(RequestNewConsumer)
+  async onRequestNewConsumer({
+    id,
+    producerId,
+    rtpCapabilities,
+  }: RequestNewConsumer) {
+    const consumer = await RTCServer.getRoom().newConsumer(
+      id,
+      producerId,
+      rtpCapabilities
+    );
 
-    await transport.connect({
-      dtlsParameters: message.dtlsParameters,
-    });
-    console.log(`[ViewerHandler] Transport to client connected`);
-  }
-
-  @listen(ClientJoinRTC)
-  async onClientJoin() {
-    const consumer = await this.recvTransport.consume({
-      producerId: this.sendTransport.id,
-      paused: true,
-    });
-  }
-
-  @listen(ClientNewProducer)
-  async onNewProducer(message: ClientNewProducer) {
-    this.producer = await this.sendTransport.produce({
-      kind: "video",
-      rtpParameters: message.rtpParameters,
-    });
-
-    const consumer = await this.recvTransport.consume({
-      producerId: this.producer.id,
-      paused: true,
-    });
-
-    const msg = new ServerNewConsumer();
+    // Respond
+    const msg = new ResponseNewConsumer();
     msg.id = consumer.id;
-    msg.kind = consumer.kind;
-    msg.producerId = this.producer.id;
-    msg.rtpParameters = message.rtpParameters;
-    this.handler.send(msg);
+    msg.rtpParameters = consumer.rtpParameters;
+    return msg;
+  }
+
+  @listen(RequestTransportStats)
+  async onRequestTransportStats({ id }: RequestTransportStats) {
+    const stats = await RTCServer.getRoom().getTransport(id).getStats();
+
+    const msg = new ResponseTransportStats();
+    msg.stats = stats;
+    return msg;
+  }
+
+  @listen(ClientTest)
+  onTest() {
+    const msg = new ServerTest();
+    return msg;
   }
 }

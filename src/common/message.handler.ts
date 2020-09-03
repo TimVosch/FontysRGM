@@ -1,13 +1,15 @@
 import { MessageParser } from "./message.parser";
-import { extractListeners, extractMessages } from "./util";
+import { extractListeners, extractMessages, getEventName } from "./util";
 import { classToPlain } from "class-transformer";
+import { RPCMessage } from "./messages/rpc.message";
 
 interface Emittable {
   emit(event: string, ...args: any[]): void;
+  once(event: string, callback: Function): void;
 }
 
 export abstract class MessageHandlerBase<Socket extends Emittable> {
-  protected listeners: Record<string, Function[]>;
+  protected listeners: Record<string, Function>;
   protected target: any;
   protected socket: Socket;
 
@@ -16,6 +18,8 @@ export abstract class MessageHandlerBase<Socket extends Emittable> {
     this.socket = socket;
     this.initializeClass();
     this.bindOnMessage();
+
+    MessageParser.register(RPCMessage);
   }
 
   /**
@@ -27,6 +31,32 @@ export abstract class MessageHandlerBase<Socket extends Emittable> {
 
     const listeners = extractListeners(this.target);
     this.listeners = listeners;
+  }
+
+  async onRPCMessage(message: RPCMessage) {
+    const rpcIn = message as RPCMessage;
+    const result = await this.onMessage(rpcIn.event, rpcIn.data);
+
+    // If result is null, then there was no listener
+    // and it probably wasnt this instance its responsibility
+    if (result === null) {
+      return;
+    }
+
+    const rpcOut = new RPCMessage();
+    rpcOut.id = rpcIn.id;
+
+    if (result !== undefined) {
+      const msgType = getEventName(result.constructor);
+
+      // if result is of message type then set response
+      if (msgType !== null) {
+        rpcOut.event = msgType;
+        rpcOut.data = result;
+      }
+    }
+
+    this.socket.emit(rpcIn.id, rpcOut);
   }
 
   /**
@@ -44,8 +74,17 @@ export abstract class MessageHandlerBase<Socket extends Emittable> {
     }
     console.log(`[MessageHandler] Received ${event}`);
 
-    // Call listeners
-    this.listeners[event].forEach((listener) => listener(message, client));
+    // If message is an RPC Message
+    if (event === getEventName(RPCMessage)) {
+      return this.onRPCMessage(message);
+    }
+
+    // Otherwise call listener
+    const listener = this.listeners[event];
+    if (listener) {
+      return await listener(message, client);
+    }
+    return null;
   }
 
   /**
@@ -76,6 +115,31 @@ export abstract class MessageHandlerBase<Socket extends Emittable> {
     }
 
     socket.emit(eventName, classToPlain(message));
+  }
+
+  /**
+   *  Request and wait for an answer
+   */
+  request<A, B>(
+    question: A,
+    answerType: new (...args: any[]) => B
+  ): Promise<B> {
+    MessageParser.register(answerType);
+    return new Promise((resolve, reject) => {
+      const outgoing = RPCMessage.pack(question);
+
+      // Register response listener
+      this.socket.once(outgoing.id, async (incoming: RPCMessage) => {
+        const answer = await MessageParser.parse(incoming.event, incoming.data);
+        if (!(answer instanceof answerType)) {
+          return reject({ message: "Unexpect RPC response!" });
+        }
+        return resolve(answer);
+      });
+
+      // Emit question
+      this.send(outgoing);
+    });
   }
 
   abstract bindOnMessage(): void;

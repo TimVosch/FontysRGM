@@ -1,173 +1,185 @@
+import * as ms from "mediasoup-client";
 import { MessageHandler } from "../message.handler";
-import * as mediasoup from "mediasoup-client";
-import { ClientRTPCapabilities } from "../../common/messages/rtc/rtpCapabilities.client";
-import { ServerRTPCapabilities } from "../../common/messages/rtc/rtpCapabilities.server";
-import { listen } from "../../common/decorators/listen.decorator";
-import { ClientSendTransport } from "../../common/messages/rtc/sendTransport.client";
-import { ServerSendTransport } from "../../common/messages/rtc/sendTransport.server";
-import { ClientRecvTransport } from "../../common/messages/rtc/recvTransport.client";
-import { ServerRecvTransport } from "../../common/messages/rtc/recvTransport.server";
-import { EventEmitter } from "events";
-import { ClientConnectTransport } from "../../common/messages/rtc/connectTransport.client";
-import { ClientTransportStats } from "../../common/messages/rtc/transportStats.client";
-import { ServerTransportStats } from "../../common/messages/rtc/transportStats.server";
-import { ClientJoinRTC } from "../../common/messages/rtc/joinRTC.client";
-import { ClientNewProducer } from "../../common/messages/rtc/newProducer.client";
-import { ServerNewConsumer } from "../../common/messages/rtc/newConsumer.server";
+import { RequestRTPCapabilities } from "../../common/messages/rtc/rtpCapabilities.request";
+import { ResponseRTPCapabilities } from "../../common/messages/rtc/rtpCapabilities.response";
+import { RequestCreateTransport } from "../../common/messages/rtc/createTransport.request";
+import { ResponseCreateTransport } from "../../common/messages/rtc/createTransport.response";
+import { RequestConnectTransport } from "../../common/messages/rtc/connectTransport.request";
+import { ResponseConnectTransport } from "../../common/messages/rtc/connectTransport.response";
+import { RequestNewProducer } from "../../common/messages/rtc/newProducer.request";
+import { ResponseNewProducer } from "../../common/messages/rtc/newProducer.response";
+import { RequestNewConsumer } from "../../common/messages/rtc/newConsumer.request";
+import { ResponseNewConsumer } from "../../common/messages/rtc/newConsumer.response";
+import { RequestTransportStats } from "../../common/messages/rtc/transportStats.request";
+import { ResponseTransportStats } from "../../common/messages/rtc/transportStats.response";
 
-export class RTCManager extends EventEmitter {
-  private handler: MessageHandler;
-  private device: mediasoup.types.Device;
-  private sendTransport: mediasoup.types.Transport;
-  private recvTransport: mediasoup.types.Transport;
-  private producer: mediasoup.types.Producer;
+export class RTCManager {
+  private readonly handler: MessageHandler;
+  private device: ms.types.Device;
+  private transports: Record<string, ms.types.Transport> = {};
+  private producingTransport: string;
 
   constructor(socket: SocketIOClient.Socket) {
-    super();
+    this.device = new ms.Device();
     this.handler = new MessageHandler(this, socket);
-    this.device = new mediasoup.Device();
   }
 
-  initialize() {
-    this.handler.send(new ClientRTPCapabilities());
+  /**
+   * Initialize device
+   */
+  async initialize() {
+    const response = await this.handler.request(
+      new RequestRTPCapabilities(),
+      ResponseRTPCapabilities
+    );
+    await this.device.load({ routerRtpCapabilities: response.rtpCapabilities });
+    console.log("Mediasoup device loaded");
   }
 
-  startProducer() {
-    this.handler.send(new ClientSendTransport());
-  }
-  startConsumer() {
-    this.handler.send(new ClientRecvTransport());
-  }
-
-  join() {
-    this.handler.send(new ClientJoinRTC());
-  }
-
-  getStats() {
-    const msg = new ClientTransportStats();
-    msg.id = this.sendTransport.id;
-    this.handler.send(msg);
-  }
-
-  async activateCamera() {
-    // Request camera media stream from browser
-    const mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: { source: "device" },
-    } as any);
-
-    // Get the video track
-    return mediaStream.getVideoTracks()[0];
-  }
-
-  onSendTransportConnect({ dtlsParameters }, callback, error) {
-    console.log(`Send transport is connected`);
-
-    const msg = new ClientConnectTransport();
-    msg.id = this.sendTransport.id;
-    msg.dtlsParameters = dtlsParameters;
-    this.handler.send(msg);
-
-    setTimeout(callback, 200);
-  }
-
-  onSendTransportProduce() {
-    console.log(`Send transport produce`);
-
-    const msg = new ClientNewProducer();
-    msg.rtpParameters = this.producer.rtpParameters;
-    this.handler.send(msg);
-  }
-
-  onRecvTransportConnect({ dtlsParameters }) {
-    console.log(`Recv transport is connected`);
-
-    const msg = new ClientConnectTransport();
-    msg.id = this.sendTransport.id;
-    msg.dtlsParameters = dtlsParameters;
-    this.handler.send(msg);
-  }
-
-  @listen(ServerRTPCapabilities)
-  async onServerRTPCapabilities(message: ServerRTPCapabilities) {
-    console.log(`Received RTP Caps`);
-
-    // Load device with server capabilities
-    await this.device.load({
-      routerRtpCapabilities: message.rtpCapabilties,
-    });
-
-    this.emit("initialized");
-  }
-
-  @listen(ServerSendTransport)
-  async onSendTransport(message: ServerSendTransport) {
+  /**
+   * Initializes producer and starts streaming our camera
+   */
+  async streamCamera() {
+    // Create a transport on the serverside
     const {
       id,
       iceCandidates,
       iceParameters,
       dtlsParameters,
       sctpParameters,
-    } = message;
+    } = await this.handler.request(
+      new RequestCreateTransport(),
+      ResponseCreateTransport
+    );
 
-    this.sendTransport = this.device.createSendTransport({
+    // Create our equivelant transport
+    const transport = this.device.createSendTransport({
       id,
       iceCandidates,
       iceParameters,
       dtlsParameters,
       sctpParameters,
     });
+    this.transports[id] = transport;
+    this.producingTransport = id;
 
-    this.sendTransport.on("connect", this.onSendTransportConnect.bind(this));
-    this.sendTransport.on("produce", this.onSendTransportProduce.bind(this));
+    // Send our local parameters to the server
+    transport.on("connect", async ({ dtlsParameters }, done) => {
+      const req = new RequestConnectTransport();
+      req.id = transport.id;
+      req.dtlsParameters = dtlsParameters;
 
-    console.log("Created SEND transport");
-    const track = await this.activateCamera();
+      await this.handler.request(req, ResponseConnectTransport);
 
-    // Create a producer on the transport
-    this.producer = await this.sendTransport.produce({
-      track,
+      console.log(`Produce transport connected!`);
+
+      done();
+    });
+
+    // Send our local producer parameters to the server
+    transport.on("produce", async ({ kind, rtpParameters }, done) => {
+      const req = new RequestNewProducer();
+      req.id = transport.id;
+      req.kind = kind;
+      req.rtpParameters = rtpParameters;
+
+      const { id } = await this.handler.request(req, ResponseNewProducer);
+
+      console.log(`Producer connected!`);
+
+      done({ id });
+    });
+
+    // Get browser camera
+    const camera = (
+      await navigator.mediaDevices.getUserMedia({
+        video: {},
+      })
+    ).getVideoTracks()[0];
+
+    // Start producer
+    return await transport.produce({
+      track: camera,
       encodings: [
         {
-          maxBitrate: 10000,
-          maxFramerate: 15,
+          maxBitrate: 3000000,
+          maxFramerate: 60,
         },
       ],
       codecOptions: {
-        videoGoogleStartBitrate: 1000,
+        videoGoogleStartBitrate: 3000000,
       },
     });
   }
 
-  @listen(ServerRecvTransport)
-  onRecvTransport(message: ServerRecvTransport) {
+  /**
+   * Creates a new consumer
+   */
+  async createConsumer(producerId: string) {
+    // Create a transport on the serverside
     const {
-      id,
+      id: transportID,
       iceCandidates,
       iceParameters,
       dtlsParameters,
       sctpParameters,
-    } = message;
+    } = await this.handler.request(
+      new RequestCreateTransport(),
+      ResponseCreateTransport
+    );
 
-    this.recvTransport = this.device.createRecvTransport({
-      id,
+    // Create local equivelant transport
+    const transport = this.device.createRecvTransport({
+      id: transportID,
       iceCandidates,
       iceParameters,
       dtlsParameters,
       sctpParameters,
     });
 
-    this.recvTransport.on("connect", this.onRecvTransportConnect.bind(this));
+    // Send server our local parameters
+    transport.on("connect", async ({ dtlsParameters }, done) => {
+      const req = new RequestConnectTransport();
+      req.id = transport.id;
+      req.dtlsParameters = dtlsParameters;
 
-    console.log("Created RECV transport");
+      await this.handler.request(req, ResponseConnectTransport);
+
+      console.log("Receive transport connected!");
+
+      done();
+    });
+
+    // Request server to create a consumer for our transport
+    const consumeReq = new RequestNewConsumer();
+    consumeReq.id = transport.id;
+    consumeReq.producerId = producerId;
+    consumeReq.rtpCapabilities = this.device.rtpCapabilities;
+
+    const { id: consumerID, rtpParameters } = await this.handler.request(
+      consumeReq,
+      ResponseNewConsumer
+    );
+
+    // Create our consumer equivelant to the server-side consumer
+    const consumer = await transport.consume({
+      id: consumerID,
+      rtpParameters,
+      producerId: producerId,
+      kind: "video",
+    });
+
+    return consumer;
   }
 
-  @listen(ServerTransportStats)
-  onTransportStats(message: ServerTransportStats) {
-    console.log(message.stats[0]);
-  }
+  /**
+   * Get transport stats
+   */
+  async getStats() {
+    const req = new RequestTransportStats();
+    req.id = this.producingTransport;
 
-  @listen(ServerNewConsumer)
-  onNewConsumer(message: ServerNewConsumer) {
-    const consumer = this.recvTransport.consume(message as any);
+    const res = await this.handler.request(req, ResponseTransportStats);
+    return res.stats;
   }
 }

@@ -14,7 +14,7 @@ const getMethods = (obj: any) => {
 };
 
 export const extractListeners = (klass: object) => {
-  const messageListeners: Record<string, Function[]> = {};
+  const messageListeners: Record<string, Function> = {};
   const keys = getMethods(klass);
 
   // Iterate all properties and methods
@@ -27,10 +27,14 @@ export const extractListeners = (klass: object) => {
       const messageType = Reflect.getMetadata(LISTEN_METADATA_KEY, func);
       const event = Reflect.getMetadata("event", messageType);
 
-      // Add to listener list
-      const listeners = messageListeners[event] || [];
-      listeners.push(func.bind(klass));
-      messageListeners[event] = listeners;
+      // Register listener
+      const listener = messageListeners[event] || null;
+      if (listener !== null) {
+        console.warn(
+          `[UTIL] Multiple listeners for event ${event}. Only one will fire!`
+        );
+      }
+      messageListeners[event] = func;
     }
   });
 
@@ -58,4 +62,13 @@ export const extractMessages = (klass: object) => {
   });
 
   return messages;
+};
+
+export const getEventName = (message: new (...args: any[]) => any) => {
+  const event = Reflect.getMetadata("event", message) || null;
+
+  if (event === null) {
+    console.error(`[RPCMessage] Cannot pack message that is not registered`);
+  }
+  return event;
 };

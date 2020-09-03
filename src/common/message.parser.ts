@@ -1,5 +1,4 @@
 import "reflect-metadata";
-import { Packet } from "socket.io";
 import { validate } from "class-validator";
 import { plainToClass } from "class-transformer";
 
