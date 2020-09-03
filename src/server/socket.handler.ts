@@ -3,6 +3,7 @@ import { Server } from "http";
 import { ClientElbowshake } from "../common/messages/elbowshake.client";
 import { MachineHandler } from "./machine.handler";
 import { MessageParser } from "../common/message.parser";
+import { ViewerHandler } from "./viewer.handler";
 
 export class SocketHandler {
   private readonly server: SocketIO.Server;
@@ -60,6 +61,7 @@ export class SocketHandler {
 
     //
     if (message.viewer) {
+      new ViewerHandler(client);
     } else {
       new MachineHandler(client);
     }
