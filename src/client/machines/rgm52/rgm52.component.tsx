@@ -6,12 +6,32 @@ import { PeerCloseAlert } from "../../../common/messages/closeAlert.peer";
 import { PeerOpenTerminal } from "../../../common/messages/openTerminal.peer";
 import { listen } from "../../../common/decorators/listen.decorator";
 
-export class RGM52Page extends Machine {
+interface RGM52PageState {
+  messagebox: {
+    active: boolean;
+    message: string;
+  };
+  popup: {
+    active: boolean;
+  };
+}
+
+export class RGM52Page extends Machine<undefined, RGM52PageState> {
   readonly id = 52;
 
-  messageBox: HTMLElement = document.getElementById("message");
-  popup: HTMLElement = document.getElementById("popup");
-  console: HTMLElement = document.getElementById("console");
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      messagebox: {
+        active: false,
+        message: "",
+      },
+      popup: {
+        active: false,
+      },
+    };
+  }
 
   onStart(): void {
     this.finish();
@@ -19,24 +39,49 @@ export class RGM52Page extends Machine {
 
   @listen(PeerMakeAlert)
   onAlert({ message }: PeerMakeAlert) {
-    this.messageBox.classList.add("active");
-    this.messageBox.innerHTML = message;
+    const { messagebox } = this.state;
+
+    messagebox.active = true;
+    messagebox.message = message;
+
+    this.setState({
+      messagebox,
+    });
   }
 
   @listen(PeerCloseAlert)
   onCloseAlert() {
-    this.messageBox.classList.remove("active");
+    const { messagebox } = this.state;
+
+    messagebox.active = false;
+
+    this.setState({
+      messagebox,
+    });
   }
 
   @listen(PeerOpenTerminal)
   openTerminal() {
-    this.popup.classList.add("active");
+    const { popup } = this.state;
+
+    popup.active = true;
+
+    this.setState({
+      popup,
+    });
   }
 
   render() {
+    const { messagebox, popup } = this.state;
+    const msgboxClasses = ["msg"];
+    const popupClasses = ["popup"];
+
+    messagebox.active && msgboxClasses.push("active");
+    popup.active && popupClasses.push("active");
+
     return (
       <div id="rgm52">
-        <div id="popup" className="popup">
+        <div id="popup" className={popupClasses.join(" ")}>
           <div className="popup-toolbar">Terminal - Hacked By Tim</div>
           <div className="popup-container">
             <div id="console">
@@ -57,7 +102,9 @@ export class RGM52Page extends Machine {
             </div>
           </div>
         </div>
-        <div id="message" className="msg"></div>
+        <div id="message" className={msgboxClasses.join(" ")}>
+          {messagebox.message}
+        </div>
       </div>
     );
   }
