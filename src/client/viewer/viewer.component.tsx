@@ -6,6 +6,8 @@ import {
 } from "../../common/messages/elbowshake.client";
 import { VideoConsumer } from "./videoConsumer.component";
 import { Broadcaster } from "./broadcaster.component";
+import { ClientTest } from "../../common/messages/test.client";
+import { ServerTest } from "../../common/messages/test.server";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
@@ -37,13 +39,19 @@ export class Viewer extends Component<ViewerProps> {
     this.handler.close();
   }
 
+  async onStart() {
+    const msg = new ClientTest();
+    const response = await this.handler.request(msg, ServerTest);
+    console.log(response);
+  }
+
   render() {
     return (
       <div>
         <h1>Viewer!</h1>
         <VideoConsumer />
         <Broadcaster />
-        <button>Start</button>
+        <button onClick={this.onStart.bind(this)}>Start</button>
       </div>
     );
   }
