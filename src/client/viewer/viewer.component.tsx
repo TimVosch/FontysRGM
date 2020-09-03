@@ -8,6 +8,7 @@ import { VideoConsumer } from "./videoConsumer.component";
 import { Broadcaster } from "./broadcaster.component";
 import { ClientTest } from "../../common/messages/test.client";
 import { ServerTest } from "../../common/messages/test.server";
+import { RTCManager } from "../rtc/rtc.manager";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
@@ -15,12 +16,15 @@ interface ViewerProps {
 
 export class Viewer extends Component<ViewerProps> {
   handler: MessageHandler;
+  rtcManager: RTCManager;
 
   constructor(props: Readonly<ViewerProps>) {
     super(props);
 
     this.handler = new MessageHandler(this, props.socket);
     this.initializeWS();
+    this.rtcManager = new RTCManager(props.socket);
+    this.rtcManager.initialize();
   }
 
   /**

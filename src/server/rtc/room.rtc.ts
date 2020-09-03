@@ -8,6 +8,10 @@ export class RTCRoom {
     this.router = router;
   }
 
+  getRTPCapabilities() {
+    return this.router.rtpCapabilities;
+  }
+
   /**
    * Instantiate a room
    * @param worker
