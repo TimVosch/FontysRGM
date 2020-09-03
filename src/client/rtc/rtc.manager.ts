@@ -39,7 +39,7 @@ export class RTCManager {
   /**
    * Initializes producer and starts streaming our camera
    */
-  async streamCamera() {
+  async startProducing(track: MediaStreamTrack) {
     // Create a transport on the serverside
     const {
       id,
@@ -90,16 +90,9 @@ export class RTCManager {
       done({ id });
     });
 
-    // Get browser camera
-    const camera = (
-      await navigator.mediaDevices.getUserMedia({
-        video: {},
-      })
-    ).getVideoTracks()[0];
-
     // Start producer
     return await transport.produce({
-      track: camera,
+      track,
       encodings: [
         {
           maxBitrate: 3000000,

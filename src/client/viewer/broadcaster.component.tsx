@@ -16,7 +16,18 @@ export class Broadcaster extends React.Component<BroadcasterProps> {
 
   async startStream() {
     console.log("Starting camera stream");
-    const producer = await this.props.rtcManager.streamCamera();
+
+    // Get browser camera
+    const cameraTrack = (
+      await navigator.mediaDevices.getUserMedia({
+        video: {},
+      })
+    ).getVideoTracks()[0];
+
+    // const camera = (
+    //   await (navigator.mediaDevices as any).getDisplayMedia()
+    // ).getVideoTracks()[0];
+    const producer = await this.props.rtcManager.startProducing(cameraTrack);
 
     if (this.props.onStart) this.props.onStart(producer.id);
   }
