@@ -14,6 +14,7 @@ interface RGM52PageState {
   popup: {
     active: boolean;
   };
+  console: string[];
 }
 
 export class RGM52Page extends Machine<undefined, RGM52PageState> {
@@ -30,6 +31,7 @@ export class RGM52Page extends Machine<undefined, RGM52PageState> {
       popup: {
         active: false,
       },
+      console: [],
     };
   }
 
@@ -69,6 +71,27 @@ export class RGM52Page extends Machine<undefined, RGM52PageState> {
     this.setState({
       popup,
     });
+
+    let texts = [
+      "Hello Toon",
+      "Your pc has been hacked...",
+      "by....",
+      "screen 51....",
+      "Let's jump to the next one!",
+      "5",
+      "4",
+      "3",
+      "2",
+      "1",
+      "Here we go!",
+      "YEET",
+    ];
+    setInterval(() => {
+      if (texts.length > 0) {
+        this.setState({ console: [...this.state.console, texts[0]] });
+        texts.splice(0, 1);
+      }
+    }, 1000);
   }
 
   render() {
@@ -85,20 +108,9 @@ export class RGM52Page extends Machine<undefined, RGM52PageState> {
           <div className="popup-toolbar">Terminal - Hacked By Tim</div>
           <div className="popup-container">
             <div id="console">
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
-              <p>jifejiowfjioewaijo</p>
+              {this.state.console.map((t, i) => (
+                <p key={i}>{t}</p>
+              ))}
             </div>
           </div>
         </div>

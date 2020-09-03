@@ -9,10 +9,9 @@ import { SocketHandler } from "./socket.handler";
 
 export class MachineHandler {
   public readonly handler: MessageHandler;
-  private id: number;
   private firebaseCallbackValue: any;
 
-  constructor(public readonly client: SocketIO.Socket) {
+  constructor(public readonly client: SocketIO.Socket, private id: number) {
     this.handler = new MessageHandler(this, client);
 
     this.firebaseCallbackValue = firebase().onChange(

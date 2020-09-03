@@ -102,7 +102,10 @@ export class SocketHandler {
         }
 
         // Create the client handler
-        SocketHandler.machines[message.id] = new MachineHandler(client);
+        SocketHandler.machines[message.id] = new MachineHandler(
+          client,
+          message.id
+        );
 
         // Free RGM ID when disconnected
         SocketHandler.machines[message.id].client.once("disconnect", () => {
