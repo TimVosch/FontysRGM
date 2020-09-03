@@ -1,11 +1,11 @@
 import { registerMessage } from "../../decorators/message.decorator";
-import { IsString, IsNotEmptyObject } from "class-validator";
+import { IsNotEmptyObject, IsString } from "class-validator";
 
 @registerMessage()
-export class RequestConnectTransport {
+export class ResponseNewConsumer {
   @IsString()
   id: string;
 
   @IsNotEmptyObject()
-  dtlsParameters: any;
+  rtpParameters: any;
 }

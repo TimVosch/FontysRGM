@@ -14,12 +14,20 @@ interface ViewerProps {
   socket: SocketIOClient.Socket;
 }
 
-export class Viewer extends Component<ViewerProps> {
+interface ViewerState {
+  producerId: string;
+}
+
+export class Viewer extends Component<ViewerProps, ViewerState> {
   handler: MessageHandler;
   rtcManager: RTCManager;
 
   constructor(props: Readonly<ViewerProps>) {
     super(props);
+
+    this.state = {
+      producerId: null,
+    };
 
     this.handler = new MessageHandler(this, props.socket);
     this.initializeWS();
@@ -49,12 +57,24 @@ export class Viewer extends Component<ViewerProps> {
     console.log(response);
   }
 
+  async onBroadcastStart(producerId: string) {
+    console.log("Broadcast started");
+
+    this.setState({
+      producerId,
+    });
+  }
+
   render() {
+    const { producerId } = this.state;
     return (
       <div>
         <h1>Viewer!</h1>
-        <VideoConsumer />
-        <Broadcaster rtcManager={this.rtcManager} />
+        <VideoConsumer rtcManager={this.rtcManager} producerId={producerId} />
+        <Broadcaster
+          rtcManager={this.rtcManager}
+          onStart={this.onBroadcastStart.bind(this)}
+        />
         <button onClick={this.onTest.bind(this)}>Test</button>
       </div>
     );

@@ -11,6 +11,10 @@ import { RequestConnectTransport } from "../common/messages/rtc/connectTransport
 import { ResponseConnectTransport } from "../common/messages/rtc/connectTransport.response";
 import { RequestNewProducer } from "../common/messages/rtc/newProducer.request";
 import { ResponseNewProducer } from "../common/messages/rtc/newProducer.response";
+import { RequestNewConsumer } from "../common/messages/rtc/newConsumer.request";
+import { ResponseNewConsumer } from "../common/messages/rtc/newConsumer.response";
+import { RequestTransportStats } from "../common/messages/rtc/transportStats.request";
+import { ResponseTransportStats } from "../common/messages/rtc/transportStats.response";
 
 export class ViewerHandler {
   private readonly handler: MessageHandler;
@@ -66,6 +70,34 @@ export class ViewerHandler {
     const msg = new ResponseNewProducer();
     msg.id = producer.id;
     return msg;
+  }
+
+  @listen(RequestNewConsumer)
+  async onRequestNewConsumer({
+    id,
+    producerId,
+    rtpCapabilities,
+  }: RequestNewConsumer) {
+    const consumer = await RTCServer.getRoom().newConsumer(
+      id,
+      producerId,
+      rtpCapabilities
+    );
+
+    // Respond
+    const msg = new ResponseNewConsumer();
+    msg.id = consumer.id;
+    msg.rtpParameters = consumer.rtpParameters;
+    return msg;
+  }
+
+  @listen(RequestTransportStats)
+  async onRequestTransportStats({ id }: RequestTransportStats) {
+    const stats = await RTCServer.getRoom().getTransport(id).getStats();
+
+    const msg = new ResponseTransportStats();
+    msg.stats = stats;
+    return stats;
   }
 
   @listen(ClientTest)
