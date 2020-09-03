@@ -18,8 +18,11 @@ export class RTCRoom {
    * Create a new transport
    */
   async createTransport() {
+    const listenIps = !!process.env.LISTEN_IPS
+      ? process.env.LISTEN_IPS
+      : "127.0.0.1";
     const transport = await this.router.createWebRtcTransport({
-      listenIps: ["31.201.105.120"],
+      listenIps: listenIps.split(","),
       enableTcp: true,
       enableUdp: true,
       preferUdp: true,

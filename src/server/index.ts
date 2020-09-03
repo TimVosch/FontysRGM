@@ -32,8 +32,9 @@ const bootstrap = async () => {
 
   app.use(express.static("dist"));
 
-  http.listen(3000, () => {
-    console.log("[Server] Listening");
+  const port = !!process.env.NODE_PORT ? parseInt(process.env.NODE_PORT) : 3000;
+  http.listen(port, () => {
+    console.log(`[Server] Listening on ${port}`);
   });
 };
 bootstrap();
