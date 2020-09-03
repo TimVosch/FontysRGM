@@ -4,6 +4,8 @@ import { listen } from "../common/decorators/listen.decorator";
 import { ClientRequestTransport } from "../common/messages/rtc/requestTransport.client";
 import { ServerRequestTransport } from "../common/messages/rtc/requestTransport.server";
 import { RTCServer } from "./rtcserver";
+import { ClientTransportStats } from "../common/messages/rtc/transportStats.client";
+import { ServerTransportStats } from "../common/messages/rtc/transportStats.server";
 
 export class ViewerHandler {
   private readonly handler: MessageHandler;
@@ -20,19 +22,22 @@ export class ViewerHandler {
 
     this.transport = await RTCServer.createRTCTransport();
 
-    this.transport.on("connect", () => {
-      console.log(`[ViewerHandler] Client connected to transport`);
-    });
-    this.transport.on("produce", () => {
-      console.log(`[ViewerHandler] Client produced on transport`);
-    });
-
     msg.id = this.transport.id;
     msg.iceCandidates = this.transport.iceCandidates;
     msg.iceParameters = this.transport.iceParameters;
     msg.dtlsParameters = this.transport.dtlsParameters;
     msg.sctpParameters = this.transport.sctpParameters;
 
+    this.handler.send(msg);
+  }
+
+  @listen(ClientTransportStats)
+  async onTransportStats(message: ClientTransportStats) {
+    console.log(`[ViewerHandler] Requesting stats`);
+    const stats = await this.transport.getStats();
+
+    const msg = new ServerTransportStats();
+    msg.stats = stats;
     this.handler.send(msg);
   }
 }
