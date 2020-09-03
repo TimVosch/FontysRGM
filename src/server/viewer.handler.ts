@@ -97,7 +97,7 @@ export class ViewerHandler {
 
     const msg = new ResponseTransportStats();
     msg.stats = stats;
-    return stats;
+    return msg;
   }
 
   @listen(ClientTest)

@@ -38,6 +38,7 @@ export class VideoConsumer extends React.Component<
       el.srcObject = stream;
     }
   }
+
   render() {
     return (
       <div>
