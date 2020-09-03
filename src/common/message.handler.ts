@@ -42,6 +42,7 @@ export abstract class MessageHandlerBase<Socket extends Emittable> {
     if (message === null) {
       return;
     }
+    console.log(`[MessageHandler] Received ${event}`);
 
     // Call listeners
     this.listeners[event].forEach((listener) => listener(message, client));
@@ -64,7 +65,7 @@ export abstract class MessageHandlerBase<Socket extends Emittable> {
     }
 
     // Get event name
-    const eventName = Reflect.getMetadata("event", message.constructor);
+    const eventName = Reflect.getMetadata("event", message.constructor) || null;
 
     // Invalid message
     if (eventName === null) {
