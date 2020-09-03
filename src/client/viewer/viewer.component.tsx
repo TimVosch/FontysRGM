@@ -7,7 +7,7 @@ import {
 import { ClientRequestTransport } from "../../common/messages/rtc/requestTransport.client";
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerRequestTransport } from "../../common/messages/rtc/requestTransport.server";
-import * as mediasoup from "mediasoup";
+import * as mediasoup from "mediasoup-client";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
