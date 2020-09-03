@@ -36,6 +36,13 @@ export abstract class MessageHandlerBase<Socket extends Emittable> {
   async onRPCMessage(message: RPCMessage) {
     const rpcIn = message as RPCMessage;
     const result = await this.onMessage(rpcIn.event, rpcIn.data);
+
+    // If result is null, then there was no listener
+    // and it probably wasnt this instance its responsibility
+    if (result === null) {
+      return;
+    }
+
     const rpcOut = new RPCMessage();
     rpcOut.id = rpcIn.id;
 
