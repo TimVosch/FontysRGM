@@ -36,7 +36,8 @@ export class RGM52Page extends Machine<undefined, RGM52PageState> {
   }
 
   onStart(): void {
-    this.finish();
+    console.log("started");
+    // this.finish();
   }
 
   @listen(PeerMakeAlert)
@@ -86,10 +87,13 @@ export class RGM52Page extends Machine<undefined, RGM52PageState> {
       "Here we go!",
       "YEET",
     ];
-    setInterval(() => {
+    let interval = setInterval(() => {
       if (texts.length > 0) {
         this.setState({ console: [...this.state.console, texts[0]] });
         texts.splice(0, 1);
+      } else {
+        clearInterval(interval);
+        this.finish();
       }
     }, 1000);
   }
