@@ -41,6 +41,7 @@ export class MessageParserClass {
     const message = plainToClass(ctor, data);
     const errors = await validate(message);
     if (errors.length > 0) {
+      console.log(errors);
       console.error(`Failed to parse message for ${event}!`);
       return null;
     }

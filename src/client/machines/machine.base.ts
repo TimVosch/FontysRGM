@@ -5,9 +5,11 @@ import { ServerStartSequence } from "../../common/messages/startSequence.server"
 import { PeerMessage } from "../../common/messages/message.peer";
 import { ClientFinished } from "../../common/messages/finished.client";
 import { MessageHandler } from "../message.handler";
-import { ClientElbowshake } from "../../common/messages/elbowshake.client";
+import {
+  ClientElbowshake,
+  ClientType,
+} from "../../common/messages/elbowshake.client";
 import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
-import { ClientRegisterRGM } from "../../common/messages/registerRGM.client";
 
 interface MachineProps {
   socket: SocketIOClient.Socket;
@@ -31,12 +33,9 @@ export abstract class Machine<
 
     // Create elbowshake
     const elbowshake = new ClientElbowshake();
-    elbowshake.viewer = false;
+    elbowshake.type = ClientType.MACHINE;
+    elbowshake.id = this.id;
     this.handler.send(elbowshake);
-
-    const registration = new ClientRegisterRGM();
-    registration.id = this.id;
-    this.handler.send(registration);
   }
 
   componentWillUnmount() {

@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { HashRouter as Router, Switch, Route } from "react-router-dom";
 import SocketIO from "socket.io-client";
 import { Viewer } from "./viewer/viewer.component";
+import { Admin } from "./admin/admin.component";
 import { RGM52Page } from "./machines/rgm52/rgm52.component";
 import { RGM51Page } from "./machines/rgm51/rgm51.component";
 
@@ -20,6 +21,10 @@ export class App extends Component {
           </Route>
           <Route path="/machines/52">
             <RGM52Page socket={socket} />
+          </Route>
+          {/* Admin */}
+          <Route path="/admin">
+            <Admin socket={socket} />
           </Route>
           {/* Viewer */}
           <Route path="/">
