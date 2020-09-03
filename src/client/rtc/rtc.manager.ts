@@ -102,12 +102,12 @@ export class RTCManager {
       track: camera,
       encodings: [
         {
-          maxBitrate: 10000,
-          maxFramerate: 15,
+          maxBitrate: 3000000,
+          maxFramerate: 60,
         },
       ],
       codecOptions: {
-        videoGoogleStartBitrate: 1000,
+        videoGoogleStartBitrate: 3000000,
       },
     });
   }
