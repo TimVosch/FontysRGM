@@ -19,7 +19,7 @@ import { SocketHandler } from "./socket.handler";
 import { ServerBroadcastNewProducer } from "../common/messages/broadcastNewProducer.server";
 
 export class ViewerHandler {
-  private readonly handler: MessageHandler;
+  readonly handler: MessageHandler;
   private producerId: string | null;
 
   constructor(public readonly client: SocketIO.Socket) {

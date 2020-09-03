@@ -27,9 +27,9 @@ export class Broadcaster extends React.Component<BroadcasterProps> {
     return (
       <div>
         <h1>Broadcaster</h1>
-        <button onClick={this.startStream.bind(this)}>
+        {/* <button onClick={this.startStream.bind(this)}>
           Start broadcasting
-        </button>
+        </button> */}
         <button onClick={this.onStatsClick.bind(this)}>stats</button>
       </div>
     );

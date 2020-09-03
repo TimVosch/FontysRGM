@@ -129,6 +129,9 @@ export class SocketHandler {
           this.sendViewersToAdmin();
           console.log(`[SocketHandler] Viewer ${message.id} disconnected`);
         });
+
+        const acceptedMSG2 = new ServerRegisterRGM();
+        SocketHandler.viewers[message.id].handler.send(acceptedMSG2);
         break;
     }
   }

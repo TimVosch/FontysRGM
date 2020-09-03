@@ -11,6 +11,7 @@ import { ServerTest } from "../../common/messages/test.server";
 import { RTCManager } from "../rtc/rtc.manager";
 import { ServerBroadcastNewProducer } from "../../common/messages/broadcastNewProducer.server";
 import { listen } from "../../common/decorators/listen.decorator";
+import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
@@ -23,6 +24,7 @@ interface ViewerState {
 export class Viewer extends Component<ViewerProps, ViewerState> {
   handler: MessageHandler;
   rtcManager: RTCManager;
+  broadcaster = React.createRef<Broadcaster>();
 
   constructor(props: Readonly<ViewerProps>) {
     super(props);
@@ -63,6 +65,12 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     console.log(`Broadcast started. We are: ${producerId}`);
   }
 
+  @listen(ServerRegisterRGM)
+  onRegisterRGM() {
+    console.log("server repsodned Register RGM");
+    this.broadcaster.current.startStream();
+  }
+
   @listen(ServerBroadcastNewProducer)
   onNewBroadcaster(message: ServerBroadcastNewProducer) {
     const { producers } = this.state;
@@ -84,10 +92,11 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
         <h1>Viewer!</h1>
         {screens}
         <Broadcaster
+          ref={this.broadcaster}
           rtcManager={this.rtcManager}
           onStart={this.onBroadcastStart.bind(this)}
         />
-        <button onClick={this.onTest.bind(this)}>Test</button>
+        {/* <button onClick={this.onTest.bind(this)}>Test</button> */}
       </div>
     );
   }
