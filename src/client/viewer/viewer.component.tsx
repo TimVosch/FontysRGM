@@ -13,6 +13,7 @@ import { ServerBroadcastNewProducer } from "../../common/messages/broadcastNewPr
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
 import { AppBar, Toolbar, Typography } from "@material-ui/core";
+
 import "./viewer.component.css";
 
 interface ViewerProps {
