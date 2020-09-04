@@ -101,6 +101,7 @@ export class SocketHandler {
       return;
     }
 
+    let vHandler;
     switch (message.type) {
       case ClientType.ADMIN:
         const adminHandler = new AdminHandler(client);
@@ -153,7 +154,7 @@ export class SocketHandler {
         );
         break;
       case ClientType.VIEWER:
-        const vHandler = new ViewerHandler(client);
+        vHandler = new ViewerHandler(client);
         SocketHandler.viewers[message.id] = vHandler;
 
         // Update clients when this client starts producing
@@ -175,6 +176,11 @@ export class SocketHandler {
         const acceptedMSG2 = new ServerRegisterRGM();
         SocketHandler.viewers[message.id].handler.send(acceptedMSG2);
         break;
+      case ClientType.SPECTATOR:
+        vHandler = new ViewerHandler(client);
+        vHandler.client.once("disconnect", () => {
+          console.log(`[SocketHandler] Spectator disconnected`);
+        });
     }
   }
 
