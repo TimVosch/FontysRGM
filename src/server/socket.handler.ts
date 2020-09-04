@@ -38,8 +38,9 @@ export class SocketHandler {
     // listen to new screen and send producers (if producer doesn't exist send null)
     firebase().onChange((node: any) => {
       try {
-        const nextScreen = parseInt(node.nextScreen);
+        let nextScreen = parseInt(node.nextScreen);
         const producers = [];
+        nextScreen = nextScreen + 5 > 100 ? 95 : nextScreen;
         for (let i = nextScreen; i < nextScreen + 5; i++) {
           producers.push({
             id: i,
