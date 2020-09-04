@@ -28,6 +28,7 @@ interface ViewerState {
 
 export class Viewer extends Component<ViewerProps, ViewerState> {
   handler: MessageHandler;
+  rgmId: number;
   rtcManager: RTCManager;
   broadcaster = React.createRef<Broadcaster>();
 
@@ -55,6 +56,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     const elbowshakeMSG = new ClientElbowshake();
 
     const id = prompt("What's your RGM ID? (Cancel to view only)");
+    this.rgmId = parseInt(id);
 
     if (id) {
       elbowshakeMSG.type = ClientType.VIEWER;
@@ -90,6 +92,20 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
   onNewBroadcaster(message: ServerBroadcastNewProducer) {
     console.log(`Received new broadcaster list`);
     console.log(message.producers);
+
+    const mustBeActive =
+      message.producers.find((p) => p.id === this.rgmId) !== undefined;
+
+    if (!!this.broadcaster.current) {
+      if (!mustBeActive && !this.broadcaster.current.paused) {
+        this.broadcaster.current.pause();
+        console.log("Pausing broadcast!");
+      }
+      if (mustBeActive && this.broadcaster.current.paused) {
+        this.broadcaster.current.resume();
+        console.log("Resuming broadcast!");
+      }
+    }
 
     this.setState({
       producers: message.producers,

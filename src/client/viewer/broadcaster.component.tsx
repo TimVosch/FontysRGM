@@ -50,6 +50,14 @@ export class Broadcaster extends React.Component<
     if (this.props.onStart) this.props.onStart(producer.id);
   }
 
+  pause() {
+    if (this.producer) this.producer.pause();
+  }
+
+  resume() {
+    if (this.producer) this.producer.resume();
+  }
+
   async onStatsClick() {
     const stats = await this.props.rtcManager.getStats();
     console.log(stats);
@@ -68,6 +76,13 @@ export class Broadcaster extends React.Component<
           await (navigator.mediaDevices as any).getDisplayMedia()
         ).getVideoTracks()[0];
     }
+  }
+
+  get paused() {
+    if (!this.producer) {
+      return true;
+    }
+    return this.producer.paused;
   }
 
   render() {
