@@ -1,0 +1,32 @@
+.admin-container {
+    padding: 35px;
+}
+
+.admin-container .title {
+    margin-top: 0px;
+}
+
+.grid-overview {
+    display: grid;
+    grid-template-columns: repeat(10, auto);
+    grid-template-rows: repeat(10, auto);
+    gap: 10px;
+    height: 800px;
+}
+
+.grid-overview .member {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    font-size: 26px;
+}
+
+.grid-overview .member-offline {
+    background-color: red;
+}
+
+.grid-overview .member-online {
+    background-color: green;
+}

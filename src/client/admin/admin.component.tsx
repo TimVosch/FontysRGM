@@ -6,6 +6,7 @@ import {
 } from "../../common/messages/elbowshake.client";
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerViewers } from "../../common/messages/viewers.server";
+import './admin.component.css'
 
 interface AdminProps {
   socket: SocketIOClient.Socket;
@@ -14,6 +15,8 @@ interface AdminProps {
 interface AdminState {
   viewers: number[];
 }
+
+const participants = 100;
 
 export class Admin extends Component<AdminProps, AdminState> {
   handler: MessageHandler;
@@ -42,17 +45,34 @@ export class Admin extends Component<AdminProps, AdminState> {
     this.setState({ viewers });
   }
 
+  participantGrid() {
+    let grid = [];
+
+    for (let i = 1; i <= participants; i++) {
+      if (this.state.viewers.includes(i)) {
+        grid.push(<div className="member member-online">{i}</div>)
+      } else {
+        grid.push(<div className="member member-offline">{i}</div>)
+      }
+
+    }
+    return grid;
+  }
+
   render() {
     return (
-      <>
-        <h1>Admin!</h1>
-        <h2>Clients:</h2>
-        <ul>
+      <div className="admin-container">
+        <h1 className="title">Admin dashboard</h1>
+        <h2>Connected clients:</h2>
+        <div className="grid-overview">
+          {this.participantGrid()}
+        </div>
+        {/* <ul>
           {this.state.viewers.map((id) => (
             <li key={id}>{id}</li>
           ))}
-        </ul>
-      </>
+        </ul> */}
+      </div>
     );
   }
 }
