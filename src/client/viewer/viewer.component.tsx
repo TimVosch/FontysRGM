@@ -13,6 +13,7 @@ import { ServerBroadcastNewProducer } from "../../common/messages/broadcastNewPr
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
 import { AppBar, Toolbar, Typography } from "@material-ui/core";
+import "./viewer.component.css";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
@@ -21,6 +22,7 @@ interface ViewerProps {
 interface ViewerState {
   producers: { id: number; producerId: string }[];
   broadcaster: boolean;
+  currentRGM: number;
 }
 
 export class Viewer extends Component<ViewerProps, ViewerState> {
@@ -34,6 +36,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     this.state = {
       producers: [],
       broadcaster: false,
+      currentRGM: 0,
     };
 
     this.handler = new MessageHandler(this, props.socket);
@@ -86,45 +89,41 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
   onNewBroadcaster(message: ServerBroadcastNewProducer) {
     this.setState({
       producers: message.producers,
+      currentRGM: message.currentRGM,
     });
   }
 
   render() {
-    const { producers } = this.state;
+    const { producers, currentRGM } = this.state;
     console.log(producers);
+
+    const style = (id: number) => ({
+      left: `${(id - currentRGM) * 33 + 33}%`,
+    });
 
     const screens = producers.map((producer) =>
       producer.producerId ? (
-        <VideoConsumer
-          rtcManager={this.rtcManager}
-          producerId={producer.producerId}
-          key={producer.id}
-        />
+        <div className="screen" key={producer.id} style={style(producer.id)}>
+          <VideoConsumer
+            rtcManager={this.rtcManager}
+            producerId={producer.producerId}
+          />
+        </div>
       ) : (
-        <div
-          key={producer.id}
-          style={{ width: "400px", height: "300px", background: "grey" }}
-        ></div>
+        <div className="screen" key={producer.id} style={style(producer.id)}>
+          {producer.id} is offline
+        </div>
       )
     );
 
     return (
-      <>
+      <div id="viewer">
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6">RGM Streaming Tool</Typography>
           </Toolbar>
         </AppBar>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            flex: 1,
-            alignItems: "center",
-          }}
-        >
-          {screens}
-        </div>
+        <div className="screens-container">{screens}</div>
         {this.state.broadcaster && (
           <Broadcaster
             ref={this.broadcaster}
@@ -133,7 +132,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
           />
         )}
         {/* <button onClick={this.onTest.bind(this)}>Test</button> */}
-      </>
+      </div>
     );
   }
 }

@@ -40,8 +40,8 @@ export class SocketHandler {
       try {
         let nextScreen = parseInt(node.nextScreen);
         const producers = [];
-        nextScreen = nextScreen + 5 > 100 ? 95 : nextScreen;
-        for (let i = nextScreen; i < nextScreen + 5; i++) {
+        // nextScreen = nextScreen + 5 > 100 ? 95 : nextScreen;
+        for (let i = nextScreen - 2; i < nextScreen + 3; i++) {
           producers.push({
             id: i,
             producerId: SocketHandler.viewers[i]?.getProducerId(),
@@ -49,6 +49,7 @@ export class SocketHandler {
         }
         const msg = new ServerBroadcastNewProducer();
         msg.producers = producers;
+        msg.currentRGM = nextScreen;
         this.server.emit(ServerBroadcastNewProducer.name, classToPlain(msg));
       } catch {
         // ignore

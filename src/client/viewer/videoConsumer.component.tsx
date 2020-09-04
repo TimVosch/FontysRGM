@@ -39,18 +39,14 @@ export class VideoConsumer extends React.Component<VideoConsumerProps> {
 
   render() {
     return (
-      <div>
-        {/* <h1>Consumer</h1> */}
-        {/* <button onClick={this.startConsuming.bind(this)}>Start consuming</button> */}
-        <video
-          autoPlay
-          playsInline
-          muted
-          controls={false}
-          id={"ConsumerVideoEl-" + this.props.producerId}
-          style={{ width: "400px", height: "300px" }}
-        ></video>
-      </div>
+      <video
+        autoPlay
+        playsInline
+        muted
+        controls={false}
+        id={"ConsumerVideoEl-" + this.props.producerId}
+        style={{ width: "100%", height: "100%" }}
+      ></video>
     );
   }
 }
