@@ -178,6 +178,7 @@ export class SocketHandler {
         break;
       case ClientType.SPECTATOR:
         vHandler = new ViewerHandler(client);
+        this.updateClients();
         vHandler.client.once("disconnect", () => {
           console.log(`[SocketHandler] Spectator disconnected`);
         });
