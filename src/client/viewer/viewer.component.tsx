@@ -109,13 +109,22 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     );
 
     return (
-      <div>
+      <>
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6">RGM Streaming Tool</Typography>
           </Toolbar>
         </AppBar>
-        <div style={{}}>{screens}</div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            flex: 1,
+            alignItems: "center",
+          }}
+        >
+          {screens}
+        </div>
         {this.state.broadcaster && (
           <Broadcaster
             ref={this.broadcaster}
@@ -124,7 +133,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
           />
         )}
         {/* <button onClick={this.onTest.bind(this)}>Test</button> */}
-      </div>
+      </>
     );
   }
 }

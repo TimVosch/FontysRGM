@@ -72,7 +72,7 @@ export class Broadcaster extends React.Component<
 
   render() {
     return (
-      <div>
+      <>
         {/* <h1>Broadcaster</h1> */}
         <Dialog
           aria-labelledby="media-dialog-title"
@@ -101,8 +101,8 @@ export class Broadcaster extends React.Component<
         {/* <button onClick={this.startStream.bind(this)}>
           Start broadcasting
         </button> */}
-        <button onClick={this.onStatsClick.bind(this)}>stats</button>
-      </div>
+        {/* <button onClick={this.onStatsClick.bind(this)}>stats</button> */}
+      </>
     );
   }
 }
