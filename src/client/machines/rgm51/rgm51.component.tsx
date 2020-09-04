@@ -164,6 +164,7 @@ export class RGM51Page extends Machine<MachineProps, RGMState> {
 
     await this.wait(2000);
     this.resetMachine();
+    this.finish();
   }
 
   wait(ms: number) {
