@@ -1,6 +1,5 @@
 import _firebase from "firebase/app";
 import "firebase/database";
-import { EventEmitter } from "events";
 
 let instance: FirebaseClass = null;
 export class FirebaseClass {

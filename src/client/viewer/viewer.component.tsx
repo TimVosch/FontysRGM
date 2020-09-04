@@ -9,7 +9,7 @@ import { Broadcaster } from "./broadcaster.component";
 import { ClientTest } from "../../common/messages/test.client";
 import { ServerTest } from "../../common/messages/test.server";
 import { RTCManager } from "../rtc/rtc.manager";
-import { ServerBroadcastNewProducer } from "../../common/messages/broadcastNewProducer.server";
+import { ServerBroadcastNewProducer } from "../../common/messages/broadcastNewProducers.server";
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
 import { AppBar, Toolbar, Typography } from "@material-ui/core";
@@ -19,7 +19,7 @@ interface ViewerProps {
 }
 
 interface ViewerState {
-  producers: string[];
+  producers: { id: number; producerId: string }[];
   broadcaster: boolean;
 }
 
@@ -84,9 +84,8 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
 
   @listen(ServerBroadcastNewProducer)
   onNewBroadcaster(message: ServerBroadcastNewProducer) {
-    const { producers } = this.state;
     this.setState({
-      producers: [...producers, message.producerId],
+      producers: message.producers,
     });
   }
 
@@ -94,8 +93,12 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     const { producers } = this.state;
     console.log(producers);
 
-    const screens = producers.map((id) => (
-      <VideoConsumer rtcManager={this.rtcManager} producerId={id} key={id} />
+    const screens = producers.map((producer) => (
+      <VideoConsumer
+        rtcManager={this.rtcManager}
+        producerId={producer.producerId}
+        key={producer.id}
+      />
     ));
 
     return (

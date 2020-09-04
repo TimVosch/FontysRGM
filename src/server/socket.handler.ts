@@ -11,6 +11,9 @@ import { AdminHandler } from "./admin.handler";
 import { ServerRegisterRGM } from "../common/messages/registerRGM.server";
 import { MessageHandler } from "./message.handler";
 import { ServerViewers } from "../common/messages/viewers.server";
+import { firebase } from "./firebase";
+import { ServerBroadcastNewProducer } from "../common/messages/broadcastNewProducers.server";
+import { classToClass, classToPlain } from "class-transformer";
 
 export class SocketHandler {
   private readonly server: SocketIO.Server;
@@ -30,6 +33,25 @@ export class SocketHandler {
         res.writeHead(200, headers);
         res.end();
       },
+    });
+
+    // listen to new screen and send producers (if producer doesn't exist send null)
+    firebase().onChange((node: any) => {
+      try {
+        const nextScreen = parseInt(node.nextScreen);
+        const producers = [];
+        for (let i = nextScreen; i < nextScreen + 5; i++) {
+          producers.push({
+            id: i,
+            producerId: SocketHandler.viewers[i]?.getProducerId(),
+          });
+        }
+        const msg = new ServerBroadcastNewProducer();
+        msg.producers = producers;
+        this.server.emit(ServerBroadcastNewProducer.name, classToPlain(msg));
+      } catch {
+        // ignore
+      }
     });
 
     MessageParser.register(ClientElbowshake);

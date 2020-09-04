@@ -16,7 +16,7 @@ import { ResponseNewConsumer } from "../common/messages/rtc/newConsumer.response
 import { RequestTransportStats } from "../common/messages/rtc/transportStats.request";
 import { ResponseTransportStats } from "../common/messages/rtc/transportStats.response";
 import { SocketHandler } from "./socket.handler";
-import { ServerBroadcastNewProducer } from "../common/messages/broadcastNewProducer.server";
+import { ServerBroadcastNewProducer } from "../common/messages/broadcastNewProducers.server";
 
 export class ViewerHandler {
   readonly handler: MessageHandler;
@@ -71,16 +71,6 @@ export class ViewerHandler {
     );
 
     this.producerId = producer.id;
-
-    // TODO: REMOVE
-    Object.keys(SocketHandler.viewers).forEach((rgmID) => {
-      const viewerClient = SocketHandler.viewers[parseInt(rgmID)];
-
-      const msg = new ServerBroadcastNewProducer();
-      msg.producerId = this.producerId;
-
-      viewerClient.handler.send(msg);
-    });
 
     const msg = new ResponseNewProducer();
     msg.id = producer.id;
