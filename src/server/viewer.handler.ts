@@ -1,3 +1,4 @@
+import { EventEmitter } from "events";
 import { MessageHandler } from "./message.handler";
 import { listen } from "../common/decorators/listen.decorator";
 import { ClientTest } from "../common/messages/test.client";
@@ -15,27 +16,26 @@ import { RequestNewConsumer } from "../common/messages/rtc/newConsumer.request";
 import { ResponseNewConsumer } from "../common/messages/rtc/newConsumer.response";
 import { RequestTransportStats } from "../common/messages/rtc/transportStats.request";
 import { ResponseTransportStats } from "../common/messages/rtc/transportStats.response";
-import { SocketHandler } from "./socket.handler";
-import { ServerBroadcastNewProducer } from "../common/messages/broadcastNewProducers.server";
 
-export class ViewerHandler {
+export class ViewerHandler extends EventEmitter {
   readonly handler: MessageHandler;
   private producerId: string | null;
 
   constructor(public readonly client: SocketIO.Socket) {
+    super();
     this.handler = new MessageHandler(this, client);
   }
 
   @listen(RequestRTPCapabilities)
   onRTPCapabilitiesRequest() {
     const msg = new ResponseRTPCapabilities();
-    msg.rtpCapabilities = RTCServer.getRoom().getRTPCapabilities();
+    msg.rtpCapabilities = RTCServer.getRTPCapabilities();
     return msg;
   }
 
   @listen(RequestCreateTransport)
   async onRequestCreateTransport() {
-    const transport = await RTCServer.getRoom().createTransport();
+    const transport = await RTCServer.createTransport();
 
     // Build response
     const msg = new ResponseCreateTransport();
@@ -51,10 +51,7 @@ export class ViewerHandler {
   @listen(RequestConnectTransport)
   async onRequestConnectTransport(message: RequestConnectTransport) {
     try {
-      await RTCServer.getRoom().connectTransport(
-        message.id,
-        message.dtlsParameters
-      );
+      await RTCServer.connectTransport(message.id, message.dtlsParameters);
       return new ResponseConnectTransport();
     } catch (e) {
       console.error(e);
@@ -64,13 +61,14 @@ export class ViewerHandler {
 
   @listen(RequestNewProducer)
   async onRequestNewProducer({ id, kind, rtpParameters }: RequestNewProducer) {
-    const producer = await RTCServer.getRoom().newProducer(
+    const producer = await RTCServer.newProducer(
       id,
       kind as any,
       rtpParameters
     );
 
     this.producerId = producer.id;
+    this.emit("producing");
 
     const msg = new ResponseNewProducer();
     msg.id = producer.id;
@@ -83,7 +81,7 @@ export class ViewerHandler {
     producerId,
     rtpCapabilities,
   }: RequestNewConsumer) {
-    const consumer = await RTCServer.getRoom().newConsumer(
+    const consumer = await RTCServer.newConsumer(
       id,
       producerId,
       rtpCapabilities
@@ -98,7 +96,7 @@ export class ViewerHandler {
 
   @listen(RequestTransportStats)
   async onRequestTransportStats({ id }: RequestTransportStats) {
-    const stats = await RTCServer.getRoom().getTransport(id).getStats();
+    const stats = await RTCServer.getTransport(id).getStats();
 
     const msg = new ResponseTransportStats();
     msg.stats = stats;

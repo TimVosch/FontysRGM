@@ -88,6 +88,9 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
 
   @listen(ServerBroadcastNewProducer)
   onNewBroadcaster(message: ServerBroadcastNewProducer) {
+    console.log(`Received new broadcaster list`);
+    console.log(message.producers);
+
     this.setState({
       producers: message.producers,
       currentRGM: message.currentRGM,
@@ -96,7 +99,6 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
 
   render() {
     const { producers, currentRGM } = this.state;
-    console.log(producers);
 
     const style = (id: number) => ({
       left: `${(id - currentRGM) * 33 + 33}%`,
@@ -104,14 +106,22 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
 
     const screens = producers.map((producer) =>
       producer.producerId ? (
-        <div className="screen" key={producer.id} style={style(producer.id)}>
+        <div
+          className="screen"
+          key={`${producer.id}${producer.producerId || ""}`}
+          style={style(producer.id)}
+        >
           <VideoConsumer
             rtcManager={this.rtcManager}
             producerId={producer.producerId}
           />
         </div>
       ) : (
-        <div className="screen" key={producer.id} style={style(producer.id)}>
+        <div
+          className="screen"
+          key={`${producer.id}${producer.producerId || ""}`}
+          style={style(producer.id)}
+        >
           {producer.id} is offline
         </div>
       )

@@ -13,10 +13,12 @@ import { MessageHandler } from "./message.handler";
 import { ServerViewers } from "../common/messages/viewers.server";
 import { firebase } from "./firebase";
 import { ServerBroadcastNewProducer } from "../common/messages/broadcastNewProducers.server";
-import { classToClass, classToPlain } from "class-transformer";
+import { classToPlain } from "class-transformer";
+import { RTCServer } from "./rtc/worker.manager";
 
 export class SocketHandler {
   private readonly server: SocketIO.Server;
+  private activeRGM: number = 0;
 
   public static viewers: Record<number, ViewerHandler> = {};
   public static machines: Record<number, MachineHandler> = {};
@@ -38,26 +40,31 @@ export class SocketHandler {
     // listen to new screen and send producers (if producer doesn't exist send null)
     firebase().onChange((node: any) => {
       try {
-        let nextScreen = parseInt(node.nextScreen);
-        const producers = [];
-        // nextScreen = nextScreen + 5 > 100 ? 95 : nextScreen;
-        for (let i = nextScreen - 2; i < nextScreen + 3; i++) {
-          producers.push({
-            id: i,
-            producerId: SocketHandler.viewers[i]?.getProducerId(),
-          });
-        }
-        const msg = new ServerBroadcastNewProducer();
-        msg.producers = producers;
-        msg.currentRGM = nextScreen;
-        this.server.emit(ServerBroadcastNewProducer.name, classToPlain(msg));
-      } catch {
-        // ignore
+        this.activeRGM = parseInt(node.nextScreen);
+        this.updateClients();
+      } catch (e) {
+        //
       }
     });
 
     MessageParser.register(ClientElbowshake);
     this.server.on("connection", this.onConnection.bind(this));
+  }
+
+  updateClients() {
+    let nextScreen = this.activeRGM;
+    const producers = [];
+    // nextScreen = nextScreen + 5 > 100 ? 95 : nextScreen;
+    for (let i = nextScreen - 2; i < nextScreen + 3; i++) {
+      producers.push({
+        id: i,
+        producerId: SocketHandler.viewers[i]?.getProducerId(),
+      });
+    }
+    const msg = new ServerBroadcastNewProducer();
+    msg.producers = producers;
+    msg.currentRGM = nextScreen;
+    this.server.emit(ServerBroadcastNewProducer.name, classToPlain(msg));
   }
 
   /**
@@ -146,14 +153,25 @@ export class SocketHandler {
         );
         break;
       case ClientType.VIEWER:
-        SocketHandler.viewers[message.id] = new ViewerHandler(client);
+        const vHandler = new ViewerHandler(client);
+        SocketHandler.viewers[message.id] = vHandler;
+
+        // Update clients when this client starts producing
+        vHandler.on("producing", () => {
+          this.updateClients();
+        });
+
+        // Update admin users
         this.sendViewersToAdmin();
-        SocketHandler.viewers[message.id].client.once("disconnect", () => {
+
+        // On disconnect -> cleanup
+        vHandler.client.once("disconnect", () => {
           delete SocketHandler.viewers[message.id];
           this.sendViewersToAdmin();
           console.log(`[SocketHandler] Viewer ${message.id} disconnected`);
         });
 
+        // let the client know its accepted
         const acceptedMSG2 = new ServerRegisterRGM();
         SocketHandler.viewers[message.id].handler.send(acceptedMSG2);
         break;
