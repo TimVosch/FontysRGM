@@ -93,13 +93,20 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     const { producers } = this.state;
     console.log(producers);
 
-    const screens = producers.map((producer) => (
-      <VideoConsumer
-        rtcManager={this.rtcManager}
-        producerId={producer.producerId}
-        key={producer.id}
-      />
-    ));
+    const screens = producers.map((producer) =>
+      producer.producerId ? (
+        <VideoConsumer
+          rtcManager={this.rtcManager}
+          producerId={producer.producerId}
+          key={producer.id}
+        />
+      ) : (
+        <div
+          key={producer.id}
+          style={{ width: "400px", height: "300px", background: "grey" }}
+        ></div>
+      )
+    );
 
     return (
       <div>
@@ -108,7 +115,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
             <Typography variant="h6">RGM Streaming Tool</Typography>
           </Toolbar>
         </AppBar>
-        {screens}
+        <div style={{}}>{screens}</div>
         {this.state.broadcaster && (
           <Broadcaster
             ref={this.broadcaster}

@@ -20,12 +20,12 @@ const bootstrap = async () => {
     process.exit(1);
   }
 
+  // Configure firebase singleton
+  firebase(firebaseConfig);
+
   const app = express();
   const http = createServer(app);
   const socketHandler = new SocketHandler(http);
-
-  // Configure firebase singleton
-  firebase(firebaseConfig);
 
   // Initialize RTCServer
   await RTCServer.start();
