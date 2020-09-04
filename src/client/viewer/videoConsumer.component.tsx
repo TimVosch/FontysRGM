@@ -40,7 +40,7 @@ export class VideoConsumer extends React.Component<VideoConsumerProps> {
   render() {
     return (
       <div>
-        <h1>Consumer</h1>
+        {/* <h1>Consumer</h1> */}
         {/* <button onClick={this.startConsuming.bind(this)}>Start consuming</button> */}
         <video
           autoPlay

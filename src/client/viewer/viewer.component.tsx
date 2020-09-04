@@ -12,6 +12,7 @@ import { RTCManager } from "../rtc/rtc.manager";
 import { ServerBroadcastNewProducer } from "../../common/messages/broadcastNewProducer.server";
 import { listen } from "../../common/decorators/listen.decorator";
 import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
+import { AppBar, Toolbar, Typography } from "@material-ui/core";
 
 interface ViewerProps {
   socket: SocketIOClient.Socket;
@@ -19,6 +20,7 @@ interface ViewerProps {
 
 interface ViewerState {
   producers: string[];
+  broadcaster: boolean;
 }
 
 export class Viewer extends Component<ViewerProps, ViewerState> {
@@ -31,6 +33,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
 
     this.state = {
       producers: [],
+      broadcaster: false,
     };
 
     this.handler = new MessageHandler(this, props.socket);
@@ -46,8 +49,17 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
     this.handler.open();
 
     const elbowshakeMSG = new ClientElbowshake();
-    elbowshakeMSG.type = ClientType.VIEWER;
-    elbowshakeMSG.id = parseInt(prompt("What's your RGM ID?"));
+
+    const id = prompt("What's your RGM ID? (Cancel to view only)");
+
+    if (id) {
+      elbowshakeMSG.type = ClientType.VIEWER;
+      elbowshakeMSG.id = parseInt(id);
+      setTimeout(() => this.setState({ broadcaster: true }));
+    } else {
+      elbowshakeMSG.type = ClientType.SPECTATOR;
+    }
+
     this.handler.send(elbowshakeMSG);
   }
 
@@ -68,7 +80,6 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
   @listen(ServerRegisterRGM)
   onRegisterRGM() {
     console.log("server repsodned Register RGM");
-    this.broadcaster.current.startStream();
   }
 
   @listen(ServerBroadcastNewProducer)
@@ -89,13 +100,19 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
 
     return (
       <div>
-        <h1>Viewer!</h1>
+        <AppBar position="static">
+          <Toolbar>
+            <Typography variant="h6">RGM Streaming Tool</Typography>
+          </Toolbar>
+        </AppBar>
         {screens}
-        <Broadcaster
-          ref={this.broadcaster}
-          rtcManager={this.rtcManager}
-          onStart={this.onBroadcastStart.bind(this)}
-        />
+        {this.state.broadcaster && (
+          <Broadcaster
+            ref={this.broadcaster}
+            rtcManager={this.rtcManager}
+            onStart={this.onBroadcastStart.bind(this)}
+          />
+        )}
         {/* <button onClick={this.onTest.bind(this)}>Test</button> */}
       </div>
     );

@@ -4,6 +4,7 @@ import { IsEnum, IsNumber, IsOptional } from "class-validator";
 export enum ClientType {
   ADMIN = "ADMIN",
   VIEWER = "VIEWER",
+  SPECTATOR = "SPECTATOR",
   MACHINE = "MACHINE",
 }
 
