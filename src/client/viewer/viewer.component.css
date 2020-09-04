@@ -13,4 +13,12 @@
   height: 100%;
   top: 0;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+}
+
+#viewer .screens-container .screen-offline {
+  background-color: rgb(200, 200, 200);
+  font-size: 36px;
 }
