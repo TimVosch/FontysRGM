@@ -55,7 +55,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
 
     const elbowshakeMSG = new ClientElbowshake();
 
-    const id = prompt("What's your RGM ID?? (Cancel to view only)");
+    const id = prompt("What's your RGM ID? (Cancel to view only)");
     this.rgmId = parseInt(id);
 
     if (id) {
