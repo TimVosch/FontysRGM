@@ -127,10 +127,16 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
           key={`${producer.id}${producer.producerId || ""}`}
           style={style(producer.id)}
         >
-          <VideoConsumer
-            rtcManager={this.rtcManager}
-            producerId={producer.producerId}
-          />
+          {!this.state.broadcaster ? (
+            <VideoConsumer
+              rtcManager={this.rtcManager}
+              producerId={producer.producerId}
+            />
+          ) : (
+            <span style={{ color: "green", fontWeight: 600 }}>
+              {producer.id} is online
+            </span>
+          )}
         </div>
       ) : (
         <div
@@ -138,7 +144,7 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
           key={`${producer.id}${producer.producerId || ""}`}
           style={style(producer.id)}
         >
-          {producer.id} is offline
+          <span style={{ color: "red" }}>{producer.id} is offline</span>
         </div>
       )
     );
