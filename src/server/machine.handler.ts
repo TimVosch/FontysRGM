@@ -47,6 +47,7 @@ export class MachineHandler {
   startClientSequence(data: any) {
     console.log(`[ClientHandler] Triggering client for ${this.id}`);
     const msg = new ServerStartSequence();
+    msg.data = data;
     this.handler.send(msg);
   }
 

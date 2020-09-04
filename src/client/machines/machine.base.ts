@@ -11,7 +11,7 @@ import {
 } from "../../common/messages/elbowshake.client";
 import { ServerRegisterRGM } from "../../common/messages/registerRGM.server";
 
-interface MachineProps {
+export interface MachineProps {
   socket: SocketIOClient.Socket;
 }
 
@@ -56,9 +56,9 @@ export abstract class Machine<
    * which subclass must implement
    */
   @listen(ServerStartSequence)
-  onStartSequence() {
+  onStartSequence(message: ServerStartSequence) {
     console.log(`[MachineBase] Triggered`);
-    this.onStart();
+    this.onStart(message.data);
   }
 
   /**
@@ -106,5 +106,5 @@ export abstract class Machine<
   /**
    * Triggered when the animation should start
    */
-  abstract onStart(): void;
+  abstract onStart(data?: any): void;
 }
