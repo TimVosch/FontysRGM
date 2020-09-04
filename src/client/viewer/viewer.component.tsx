@@ -133,14 +133,14 @@ export class Viewer extends Component<ViewerProps, ViewerState> {
               producerId={producer.producerId}
             />
           ) : (
-            <span style={{ color: "green", fontWeight: 600 }}>
+            <span style={{ color: "green", fontWeight: 600, fontSize: 36,  }}>
               {producer.id} is online
             </span>
           )}
         </div>
       ) : (
         <div
-          className="screen"
+          className="screen screen-offline"
           key={`${producer.id}${producer.producerId || ""}`}
           style={style(producer.id)}
         >
